@@ -1,7 +1,7 @@
 # Kịch bản quay demo: phần cụm tự dựng (khoảng 4 phút, nằm trong video tổng ≤ 10 phút)
 
 Người trình bày: Đỗ Minh Hiển (24139013). Quay màn hình bằng QuickTime (macOS: ⌘⇧5 → *Record Selected Portion*).
-Trước khi quay:
+Trước khi quay (lưu ý: Start Lab sẽ **tự bật lại** các EC2 đã Stop – quay xong nhớ Stop lại):
 1. Start Lab, mở CloudShell, chạy `cd ~/DTDM && source infra/cluster.env`.
 2. Bật lại cụm CloudFormation: `aws ec2 start-instances` cho các instance có tag `Cluster=hadoop-cfn`.
 3. Thêm IP mới của CloudShell vào SG bằng cách deploy lại stack với `SshCidr=$(curl -s https://checkip.amazonaws.com)/32`.

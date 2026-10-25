@@ -15,7 +15,9 @@
 - **Các chương báo cáo** (`report/chuong-self-managed-hien.md`): A. Kiến trúc Hadoop/Spark; B. Triển khai cụm tự dựng; C. IaC CloudFormation; D. Bảo mật & giám sát; E. Kết quả benchmark.
 - **Demo:** kịch bản khoảng 4 phút trong `docs/demo-script-self-managed.md`. Clip demo: … *(Hiển tự quay)*
 - **Dọn dẹp:** chạy `infra/cleanup.sh` để liệt kê (dry-run) rồi `--yes` để xoá stack CFN, 3 EC2 và EBS, SG, dashboard/alarm, `data/` và `artifacts/`. Giữ lại `results/` để nộp.
-  - Ảnh console sau khi xoá: … *(điền sau khi chạy)*
+  - **Ngày 26/10 (00:45):** đã xoá cụm dựng bằng script, gồm 3 EC2 terminate và 3 ổ EBS 30 GB xoá theo. Đã xoá luôn SG `hadoop-selfmanaged-sg` và 2 alarm. Chỉ giữ stack `hadoop-cfn` (3 máy đã Stop) để quay demo. Ảnh: `docs/evidence/w4/03-script-cluster-terminated-cfn-stopped.jpg`.
+  - **Lưu ý Learner Lab:** mỗi lần **Start Lab**, các EC2 đã Stop bị **tự bật lại**. Sau mỗi lần mở lab phải Stop lại ngay, nếu không máy chạy và tốn ngân sách.
+  - Phần còn lại (stack CFN, bucket `data/` và `artifacts/`) xoá bằng `infra/cleanup.sh --yes` sau khi nộp bài. Ảnh console sau khi xoá: … *(điền sau khi chạy)*
 
 **Phần có AI hỗ trợ:** Claude (Anthropic), claude-opus-5-5.
 - AI tạo: script tối ưu, script tổng hợp kết quả và vẽ biểu đồ, bản nháp các chương báo cáo, kịch bản demo, script dọn dẹp.
