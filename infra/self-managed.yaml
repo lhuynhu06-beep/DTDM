@@ -1,0 +1,303 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Cụm Hadoop 3.3.6 / Spark 3.5.5 tự dựng (1 master + 2 worker) – dựng lại bằng 1 lệnh.
+  Đề tài HadoopSpark-EC2-vs-EMR – Đỗ Minh Hiển (24139013). Dùng LabInstanceProfile có sẵn của Learner Lab.
+
+Parameters:
+  ArtifactBucket:
+    Type: String
+    Description: Bucket chứa gói mã nguồn (artifacts/dtdm.tgz) – tạo bằng infra/s3-bucket.sh
+  ArtifactKey:
+    Type: String
+    Default: artifacts/dtdm.tgz
+  SshCidr:
+    Type: String
+    Description: IP được phép SSH (vd. IP của CloudShell hoặc của nhóm, dạng a.b.c.d/32)
+    AllowedPattern: '^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$'
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: vockey
+  OperatorPublicKey:
+    Type: String
+    Default: ""
+    Description: (tuỳ chọn) public key SSH của máy điều khiển, thêm vào ec2-user
+  InstanceType:
+    Type: String
+    Default: t3.medium
+    AllowedValues: [t3.medium, t3.large, m4.large]
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+  ClusterTag:
+    Type: String
+    Default: hadoop-cfn
+  EnableS3Endpoint:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Tạo S3 Gateway Endpoint (miễn phí) để lưu lượng S3A không đi qua Internet Gateway
+
+Conditions:
+  HasS3Endpoint: !Equals [!Ref EnableS3Endpoint, "true"]
+
+Mappings:
+  Net:
+    Ips: { Master: 10.30.1.10, Worker1: 10.30.1.11, Worker2: 10.30.1.12 }
+
+Resources:
+  # ---------------- Mạng ----------------
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.30.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - { Key: Name, Value: !Sub "${ClusterTag}-vpc" }
+        - { Key: Project, Value: HadoopSpark-EC2-vs-EMR }
+        - { Key: Owner, Value: "24139013" }
+  Igw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - { Key: Name, Value: !Sub "${ClusterTag}-igw" }
+        - { Key: Project, Value: HadoopSpark-EC2-vs-EMR }
+        - { Key: Owner, Value: "24139013" }
+  IgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: { VpcId: !Ref Vpc, InternetGatewayId: !Ref Igw }
+  Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.30.1.0/24
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: true
+      Tags:
+        - { Key: Name, Value: !Sub "${ClusterTag}-public-1a" }
+        - { Key: Project, Value: HadoopSpark-EC2-vs-EMR }
+        - { Key: Owner, Value: "24139013" }
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - { Key: Name, Value: !Sub "${ClusterTag}-rt" }
+        - { Key: Project, Value: HadoopSpark-EC2-vs-EMR }
+        - { Key: Owner, Value: "24139013" }
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IgwAttach
+    Properties: { RouteTableId: !Ref RouteTable, DestinationCidrBlock: 0.0.0.0/0, GatewayId: !Ref Igw }
+  SubnetRta:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: { SubnetId: !Ref Subnet, RouteTableId: !Ref RouteTable }
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Condition: HasS3Endpoint
+    Properties:
+      VpcId: !Ref Vpc
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcEndpointType: Gateway
+      RouteTableIds: [!Ref RouteTable]
+
+  # ---------------- Security Group ----------------
+  ClusterSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${ClusterTag} - SSH chi tu SshCidr, cong noi bo chi trong SG"
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref SshCidr, Description: ssh-operator }
+      Tags:
+        - { Key: Name, Value: !Sub "${ClusterTag}-sg" }
+        - { Key: Project, Value: HadoopSpark-EC2-vs-EMR }
+        - { Key: Owner, Value: "24139013" }
+  ClusterSgSelf:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ClusterSg
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref ClusterSg
+      Description: intra-cluster (HDFS/YARN/Spark)
+
+  # ---------------- 3 node ----------------
+  MasterInstance:
+    Type: AWS::EC2::Instance
+    DependsOn: [DefaultRoute, SubnetRta]
+    CreationPolicy:
+      ResourceSignal: { Count: 1, Timeout: PT30M }
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: LabInstanceProfile
+      SubnetId: !Ref Subnet
+      PrivateIpAddress: !FindInMap [Net, Ips, Master]
+      SecurityGroupIds: [!Ref ClusterSg]
+      MetadataOptions: { HttpTokens: required, HttpEndpoint: enabled }
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: { VolumeSize: 30, VolumeType: gp3, DeleteOnTermination: true }
+      Tags:
+        - { Key: Name, Value: hadoop-master }
+        - { Key: Role, Value: master }
+        - { Key: Cluster, Value: !Ref ClusterTag }
+        - { Key: Project, Value: HadoopSpark-EC2-vs-EMR }
+        - { Key: Owner, Value: "24139013" }
+      UserData:
+        Fn::Base64: !Sub
+          - |
+            #!/bin/bash
+            set -uo pipefail
+            exec > >(tee -a /var/log/hadoop-bootstrap.log) 2>&1
+            NODE=hadoop-master
+            SIGNAL_ARGS="--stack ${AWS::StackName} --resource MasterInstance --region ${AWS::Region}"
+            dnf -y -q install aws-cfn-bootstrap
+            fail() { echo "LOI: $1"; /opt/aws/bin/cfn-signal -e 1 --reason "$1" $SIGNAL_ARGS; exit 1; }
+            ${Common}
+            # SSH không mật khẩu: master công bố public key qua S3, worker tự lấy
+            cat /home/ec2-user/.ssh/id_ed25519.pub >> /home/ec2-user/.ssh/authorized_keys
+            aws s3 cp /home/ec2-user/.ssh/id_ed25519.pub s3://${ArtifactBucket}/artifacts/${KeyPrefix}/master.pub || fail "upload master.pub"
+            for h in hadoop-worker1 hadoop-worker2; do
+              for i in $(seq 1 120); do
+                sudo -u ec2-user ssh -o BatchMode=yes -o ConnectTimeout=5 $h true 2>/dev/null && break
+                sleep 10
+              done
+              sudo -u ec2-user ssh -o BatchMode=yes $h true || fail "khong SSH duoc toi $h"
+            done
+            sudo -u ec2-user bash /home/ec2-user/DTDM/scripts/start-cluster.sh || fail "start-cluster"
+            LIVE=$(sudo -u ec2-user bash -lc 'hdfs dfsadmin -report' | grep -oP 'Live datanodes \(\K[0-9]+')
+            [ "$LIVE" = "2" ] || fail "chi co $LIVE datanode"
+            /opt/aws/bin/cfn-signal -e 0 --reason "HDFS 2 DataNode, YARN san sang" $SIGNAL_ARGS
+          - Common: !Sub
+              - |
+                aws s3 cp s3://${ArtifactBucket}/${ArtifactKey} /tmp/dtdm.tgz || fail "tai artifact"
+                mkdir -p /home/ec2-user/DTDM && tar -C /home/ec2-user/DTDM -xzf /tmp/dtdm.tgz
+                printf 'MASTER_IP=${M}\nWORKER1_IP=${W1}\nWORKER2_IP=${W2}\n' > /home/ec2-user/DTDM/scripts/cluster.env
+                chown -R ec2-user: /home/ec2-user/DTDM
+                if [ -n "${OperatorPublicKey}" ]; then echo "${OperatorPublicKey}" >> /home/ec2-user/.ssh/authorized_keys; fi
+                export SUDO_USER=ec2-user
+                bash /home/ec2-user/DTDM/scripts/setup-base.sh $NODE || fail "setup-base"
+                bash /home/ec2-user/DTDM/scripts/install-hadoop.sh || fail "install-hadoop"
+                bash /home/ec2-user/DTDM/scripts/install-spark.sh || fail "install-spark"
+                bash /home/ec2-user/DTDM/monitoring/setup-cloudwatch-agent.sh || echo "CloudWatch Agent loi (bo qua)"
+              - M: !FindInMap [Net, Ips, Master]
+                W1: !FindInMap [Net, Ips, Worker1]
+                W2: !FindInMap [Net, Ips, Worker2]
+            KeyPrefix: !Select [2, !Split ["/", !Ref "AWS::StackId"]]
+
+  Worker1Instance:
+    Type: AWS::EC2::Instance
+    DependsOn: [DefaultRoute, SubnetRta]
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: LabInstanceProfile
+      SubnetId: !Ref Subnet
+      PrivateIpAddress: !FindInMap [Net, Ips, Worker1]
+      SecurityGroupIds: [!Ref ClusterSg]
+      MetadataOptions: { HttpTokens: required, HttpEndpoint: enabled }
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: { VolumeSize: 30, VolumeType: gp3, DeleteOnTermination: true }
+      Tags:
+        - { Key: Name, Value: hadoop-worker1 }
+        - { Key: Role, Value: worker }
+        - { Key: Cluster, Value: !Ref ClusterTag }
+        - { Key: Project, Value: HadoopSpark-EC2-vs-EMR }
+        - { Key: Owner, Value: "24139013" }
+      UserData:
+        Fn::Base64: !Sub
+          - |
+            #!/bin/bash
+            set -uo pipefail
+            exec > >(tee -a /var/log/hadoop-bootstrap.log) 2>&1
+            NODE=hadoop-worker1
+            fail() { echo "LOI: $1"; exit 1; }
+            ${Common}
+            for i in $(seq 1 120); do
+              aws s3 cp s3://${ArtifactBucket}/artifacts/${KeyPrefix}/master.pub /tmp/master.pub 2>/dev/null && break
+              sleep 10
+            done
+            cat /tmp/master.pub >> /home/ec2-user/.ssh/authorized_keys
+          - Common: !Sub
+              - |
+                aws s3 cp s3://${ArtifactBucket}/${ArtifactKey} /tmp/dtdm.tgz || fail "tai artifact"
+                mkdir -p /home/ec2-user/DTDM && tar -C /home/ec2-user/DTDM -xzf /tmp/dtdm.tgz
+                printf 'MASTER_IP=${M}\nWORKER1_IP=${W1}\nWORKER2_IP=${W2}\n' > /home/ec2-user/DTDM/scripts/cluster.env
+                chown -R ec2-user: /home/ec2-user/DTDM
+                if [ -n "${OperatorPublicKey}" ]; then echo "${OperatorPublicKey}" >> /home/ec2-user/.ssh/authorized_keys; fi
+                export SUDO_USER=ec2-user
+                bash /home/ec2-user/DTDM/scripts/setup-base.sh $NODE || fail "setup-base"
+                bash /home/ec2-user/DTDM/scripts/install-hadoop.sh || fail "install-hadoop"
+                bash /home/ec2-user/DTDM/scripts/install-spark.sh || fail "install-spark"
+                bash /home/ec2-user/DTDM/monitoring/setup-cloudwatch-agent.sh || echo "CloudWatch Agent loi (bo qua)"
+              - M: !FindInMap [Net, Ips, Master]
+                W1: !FindInMap [Net, Ips, Worker1]
+                W2: !FindInMap [Net, Ips, Worker2]
+            KeyPrefix: !Select [2, !Split ["/", !Ref "AWS::StackId"]]
+
+  Worker2Instance:
+    Type: AWS::EC2::Instance
+    DependsOn: [DefaultRoute, SubnetRta]
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: LabInstanceProfile
+      SubnetId: !Ref Subnet
+      PrivateIpAddress: !FindInMap [Net, Ips, Worker2]
+      SecurityGroupIds: [!Ref ClusterSg]
+      MetadataOptions: { HttpTokens: required, HttpEndpoint: enabled }
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: { VolumeSize: 30, VolumeType: gp3, DeleteOnTermination: true }
+      Tags:
+        - { Key: Name, Value: hadoop-worker2 }
+        - { Key: Role, Value: worker }
+        - { Key: Cluster, Value: !Ref ClusterTag }
+        - { Key: Project, Value: HadoopSpark-EC2-vs-EMR }
+        - { Key: Owner, Value: "24139013" }
+      UserData:
+        Fn::Base64: !Sub
+          - |
+            #!/bin/bash
+            set -uo pipefail
+            exec > >(tee -a /var/log/hadoop-bootstrap.log) 2>&1
+            NODE=hadoop-worker2
+            fail() { echo "LOI: $1"; exit 1; }
+            ${Common}
+            for i in $(seq 1 120); do
+              aws s3 cp s3://${ArtifactBucket}/artifacts/${KeyPrefix}/master.pub /tmp/master.pub 2>/dev/null && break
+              sleep 10
+            done
+            cat /tmp/master.pub >> /home/ec2-user/.ssh/authorized_keys
+          - Common: !Sub
+              - |
+                aws s3 cp s3://${ArtifactBucket}/${ArtifactKey} /tmp/dtdm.tgz || fail "tai artifact"
+                mkdir -p /home/ec2-user/DTDM && tar -C /home/ec2-user/DTDM -xzf /tmp/dtdm.tgz
+                printf 'MASTER_IP=${M}\nWORKER1_IP=${W1}\nWORKER2_IP=${W2}\n' > /home/ec2-user/DTDM/scripts/cluster.env
+                chown -R ec2-user: /home/ec2-user/DTDM
+                if [ -n "${OperatorPublicKey}" ]; then echo "${OperatorPublicKey}" >> /home/ec2-user/.ssh/authorized_keys; fi
+                export SUDO_USER=ec2-user
+                bash /home/ec2-user/DTDM/scripts/setup-base.sh $NODE || fail "setup-base"
+                bash /home/ec2-user/DTDM/scripts/install-hadoop.sh || fail "install-hadoop"
+                bash /home/ec2-user/DTDM/scripts/install-spark.sh || fail "install-spark"
+                bash /home/ec2-user/DTDM/monitoring/setup-cloudwatch-agent.sh || echo "CloudWatch Agent loi (bo qua)"
+              - M: !FindInMap [Net, Ips, Master]
+                W1: !FindInMap [Net, Ips, Worker1]
+                W2: !FindInMap [Net, Ips, Worker2]
+            KeyPrefix: !Select [2, !Split ["/", !Ref "AWS::StackId"]]
+
+Outputs:
+  MasterPublicIp:
+    Value: !GetAtt MasterInstance.PublicIp
+  WorkerPublicIps:
+    Value: !Join [" ", [!GetAtt Worker1Instance.PublicIp, !GetAtt Worker2Instance.PublicIp]]
+  SshCommand:
+    Value: !Sub "ssh ec2-user@${MasterInstance.PublicIp}"
+  UiTunnel:
+    Description: Xem NameNode (9870), ResourceManager (8088), Spark History (18080) qua SSH tunnel
+    Value: !Sub "ssh -N -L 9870:10.30.1.10:9870 -L 8088:10.30.1.10:8088 -L 18080:10.30.1.10:18080 ec2-user@${MasterInstance.PublicIp}"

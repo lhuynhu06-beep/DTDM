@@ -1,0 +1,13 @@
+{
+  "agent": { "metrics_collection_interval": 60, "run_as_user": "cwagent" },
+  "metrics": {
+    "namespace": "HadoopSelfManaged",
+    "append_dimensions": { "InstanceId": "${aws:InstanceId}" },
+    "metrics_collected": {
+      "cpu":  { "measurement": ["usage_active", "usage_iowait"], "totalcpu": true },
+      "mem":  { "measurement": ["mem_used_percent", "mem_available"] },
+      "disk": { "measurement": ["used_percent"], "resources": ["/"], "ignore_file_system_types": ["sysfs", "devtmpfs", "tmpfs"] },
+      "swap": { "measurement": ["swap_used_percent"] }
+    }
+  }
+}

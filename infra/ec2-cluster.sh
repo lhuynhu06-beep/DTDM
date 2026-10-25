@@ -172,8 +172,10 @@ cmd_env() {
     local var; var=$(echo "${name#hadoop-}" | tr '[:lower:]' '[:upper:]')
     out+="${var}_ID=${id}"$'\n'"${var}_IP=${priv}"$'\n'"${var}_PUBLIC_IP=${pub}"$'\n'
   done
-  printf '# Sinh tự động bởi ec2-cluster.sh lúc %s — KHÔNG commit public IP nếu không cần\n%s' \
-    "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$out" > "$ENV_FILE"
+  local keep=""
+  [[ -f "$ENV_FILE" ]] && keep=$(grep -E '^BUCKET=' "$ENV_FILE" || true)   # giữ lại BUCKET do s3-bucket.sh ghi
+  printf '# Sinh tự động bởi ec2-cluster.sh lúc %s — KHÔNG commit public IP nếu không cần\n%s%s\n' \
+    "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$out" "$keep" > "$ENV_FILE"
   log "Đã ghi ${ENV_FILE}"
 }
 

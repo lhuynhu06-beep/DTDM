@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Cụm tự dựng – Đỗ Minh Hiển (24139013). NameNode trên hadoop-master; S3A dùng quyền LabInstanceProfile. -->
+<configuration>
+  <property><name>fs.defaultFS</name><value>hdfs://hadoop-master:9000</value></property>
+  <property><name>hadoop.tmp.dir</name><value>/data/hadoop/tmp</value></property>
+  <!-- S3A: credentials tạm thời lấy từ instance profile (IMDSv2), KHÔNG lưu access key -->
+  <property><name>fs.s3a.aws.credentials.provider</name>
+            <value>org.apache.hadoop.fs.s3a.auth.IAMInstanceCredentialsProvider</value></property>
+  <property><name>fs.s3a.endpoint.region</name><value>us-east-1</value></property>
+  <property><name>fs.s3a.connection.maximum</name><value>64</value></property>
+  <property><name>fs.s3a.fast.upload.buffer</name><value>disk</value></property>
+  <property><name>fs.s3a.buffer.dir</name><value>/data/hadoop/s3a</value></property>
+</configuration>

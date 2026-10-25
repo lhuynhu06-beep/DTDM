@@ -89,11 +89,17 @@ grep -A4 'BEGIN hadoop-cluster' /etc/hosts
 log "3/6 Cài Java 11 và tiện ích"
 . /etc/os-release
 if [[ "$ID" == "amzn" ]]; then
-  dnf -y -q install java-11-amazon-corretto-headless python3 rsync tar gzip which procps-ng
+  # Lúc máy vừa boot, metadata repo dnf đôi khi chưa sẵn sàng ("Unable to find a match")
+  # → thử lại tối đa 5 lần, làm mới cache giữa các lần (lỗi thực tế gặp khi dựng bằng CloudFormation)
+  for i in 1 2 3 4 5; do
+    dnf -y -q install java-11-amazon-corretto-devel python3 rsync tar gzip which procps-ng && break
+    echo "dnf lỗi (lần $i), thử lại sau 15 s"; dnf clean metadata -q || true; sleep 15
+    [[ $i -eq 5 ]] && { echo "Không cài được Java" >&2; exit 1; }
+  done
 elif [[ "$ID" == "ubuntu" ]]; then
   export DEBIAN_FRONTEND=noninteractive
   apt-get -qq update
-  apt-get -qq -y install openjdk-11-jdk-headless python3 rsync curl
+  apt-get -qq -y install openjdk-11-jdk python3 rsync curl
 else
   echo "OS ${ID} chưa hỗ trợ" >&2; exit 1
 fi
