@@ -11,17 +11,21 @@ HERE = Path(__file__).resolve().parent
 rows = [r for r in csv.DictReader(open(HERE / "results-self-managed.csv", encoding="utf-8"))]
 ok = [r for r in rows if r["exit_code"] == "0"]
 g = defaultdict(list)
+built = defaultdict(set)
 for r in ok:
     g[(r["config"], r["job"], int(r["size_gb"]))].append(float(r["seconds"]))
+    built[(r["config"], r["job"], int(r["size_gb"]))].add(r.get("built_by", "-"))
 
 lines = ["# Kết quả benchmark – cụm tự dựng (1 master + 2 worker t3.medium)", "",
          f"Tổng số lần chạy: {len(rows)} (thành công {len(ok)}). Thời gian = wall-clock của "
          "`spark-submit --deploy-mode cluster` (gồm cả xin container YARN), đọc/ghi trực tiếp S3 qua S3A.", "",
-         "| Cấu hình | Job | Dữ liệu (GB) | Số lần | Trung bình (s) | Độ lệch chuẩn (s) | Min | Max | Thông lượng (MB/s) |",
-         "|---|---|---:|---:|---:|---:|---:|---:|---:|"]
+         "Hai cụm GIỐNG HỆT NHAU (cùng 3 × t3.medium, cùng AMI, cùng cấu hình `conf/`) chạy song song để kịp phiên lab: "
+         "cụm dựng bằng script (`script`) và cụm dựng bằng CloudFormation (`cloudformation`); mỗi cụm chỉ chạy 1 job tại một thời điểm.", "",
+         "| Cấu hình | Job | Dữ liệu (GB) | Cụm | Số lần | Trung bình (s) | Độ lệch chuẩn (s) | Min | Max | Thông lượng (MB/s) |",
+         "|---|---|---:|---|---:|---:|---:|---:|---:|---:|"]
 for (cfg, job, gb), v in sorted(g.items()):
     mean = st.mean(v)
-    lines.append(f"| {cfg} | {job} | {gb} | {len(v)} | {mean:.1f} | {st.pstdev(v):.1f} | {min(v):.1f} | "
+    lines.append(f"| {cfg} | {job} | {gb} | {', '.join(sorted(built[(cfg, job, gb)]))} | {len(v)} | {mean:.1f} | {st.pstdev(v):.1f} | {min(v):.1f} | "
                  f"{max(v):.1f} | {gb * 1024 / mean:.1f} |")
 
 # So sánh trước/sau tối ưu trên CÙNG một cụm: "tuned" so với "tune-baseline" (nếu có), không thì so với "baseline"
@@ -35,6 +39,8 @@ if tuned:
         b = base.get((j, s))
         if b:
             lines.append(f"| {c} | {j} | {s} | {b:.1f} | {t:.1f} | {100 * (t - b) / b:+.1f}% |")
+lines += ["", "Ghi chú: 1 lần chạy WordCount 1 GB (413,4 s) bị loại vì chạy chồng với một job còn sót sau khi khởi động lại script "
+          "benchmark – xem `results-excluded.csv`. Độ lệch chuẩn là độ lệch chuẩn tổng thể (n=3)."]
 (HERE / "summary-self-managed.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 print("\n".join(lines))
 

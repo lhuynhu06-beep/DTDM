@@ -1,0 +1,2 @@
+cluster,built_by,config,job,size_gb,run,seconds,exit_code,app_id,finished_utc,instance_type,nodes,note
+self-managed,script,baseline,wordcount,1,1,413.4,0,application_1792928923315_0006,2026-10-25T12:22:21Z,t3.medium,1m+2w,LOẠI: chạy chồng với job còn sót sau khi khởi động lại script

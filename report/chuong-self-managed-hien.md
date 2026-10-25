@@ -82,6 +82,9 @@ Kết quả kiểm tra:
 | `jps: command not found` | gói `java-11-amazon-corretto-headless` không có công cụ JDK | Cài `java-11-amazon-corretto-devel` |
 | Bucket nhóm `hadoop-spark-lab-24139035` báo `NoSuchBucket` | bucket chưa được tạo hoặc sai tên, và nằm ở tài khoản khác | Tạo bucket riêng `hadoop-spark-24139013-<account>` |
 | Sinh dữ liệu chỉ đạt ~2 MB/s mỗi core | bốc từng từ theo Zipf bằng Python quá chậm | Dựng một kho câu theo Zipf rồi bốc theo dòng; nhanh hơn khoảng 20 lần mà vẫn giữ phân bố |
+| Lần dựng CFN đầu không hoàn tất | `dnf` trên worker2 báo "Unable to find a match" lúc máy vừa boot | Thử lại 5 lần, `dnf clean metadata` giữa các lần |
+| Log của `spark-submit` trống, script benchmark ghi nhầm exit_code=2 | client spark-submit không in log trên cụm này (nghi do xung đột binding SLF4J giữa Hadoop và Spark) | Lấy trạng thái cuối trực tiếp từ YARN (`yarn application -list -appStates ALL`); thêm `fix-status.sh` để sửa các dòng cũ |
+| Mất kết nối SSH sau khi CloudShell hết phiên | IP public của CloudShell đổi | Thêm IP mới vào SG của cụm script; với cụm CFN thì cập nhật stack (tham số `SshCidr`) |
 
 ---
 
@@ -126,4 +129,50 @@ aws cloudformation deploy --template-file infra/self-managed.yaml --stack-name h
 
 ## Chương E. Kết quả benchmark cụm tự dựng
 
-*(Bảng được tạo từ `benchmark/results-self-managed.csv`; xem `benchmark/summary-self-managed.md`)*
+**Giao thức đo:**
+- Mỗi lần đo là thời gian wall-clock của `spark-submit --deploy-mode cluster`, đọc và ghi thẳng trên S3 qua S3A.
+- 3 mức dữ liệu (1, 3, 5 GB) × 3 lần × 2 job; dữ liệu sinh bằng `jobs/gen_data.py`, seed cố định.
+- Job: `wordcount.py` (PySpark RDD) trên text và `aggregation.py` (DataFrame, group by cột đầu, `inferSchema`) trên CSV.
+
+Hai cụm **giống hệt nhau** (3 × t3.medium, cùng AMI, cùng `conf/`) chạy song song để kịp phiên lab: cụm dựng bằng script và cụm dựng bằng CloudFormation. Mỗi cụm chỉ chạy một job tại một thời điểm. Dữ liệu thô nằm trong `benchmark/results-self-managed.csv`.
+
+| Job | 1 GB | 3 GB | 5 GB | Thông lượng ở 5 GB |
+|---|---:|---:|---:|---:|
+| WordCount (s, TB ± ĐLC, n=3) | 227,4 ± 2,8 | 577,4 ± 4,0 | 943,2 ± 11,7 | 5,4 MB/s |
+| Aggregation (s, TB ± ĐLC, n=3) | 118,4 ± 6,6 | 206,6 ± 2,7 | 285,7 ± 7,7 | 17,9 MB/s |
+
+![Thời gian chạy](../benchmark/runtime-self-managed.png)
+
+**Nhận xét:**
+1. **WordCount gần như tuyến tính** theo kích thước: 1 → 5 GB tăng 4,1 lần, thông lượng giữ ổn định khoảng 5 MB/s. Job bị giới hạn bởi CPU: mỗi dòng phải đi qua Python worker (lambda `split`/`map` của RDD), nên chi phí trên mỗi byte gần như cố định.
+2. **Aggregation tăng chậm hơn**: 1 → 5 GB chỉ tăng 2,4 lần, thông lượng tăng từ 8,6 lên 17,9 MB/s. Job dùng DataFrame (Catalyst/Tungsten, không qua Python) nên tính toán rất nhẹ. Ở mức 1 GB, phần chi phí cố định (khởi động AM và executor, khoảng 20–30 s) cùng lượt đọc thêm của `inferSchema` chiếm tỉ trọng lớn.
+3. **Độ ổn định cao**: hệ số biến thiên dưới 6% ở mọi mức.
+4. **CPU credit:** dashboard cho thấy `CPUCreditBalance` của 2 worker về 0 ngay sau vài phút đầu và giữ ở 0 suốt benchmark, trong khi CPU worker ở mức 60–95%. Instance chạy ở chế độ *unlimited* nên không bị bóp xuống mức baseline 20%, nhưng phát sinh phí credit vượt. Khi so với m4.large (CPU cố định, 8 GiB) cần tính đến điểm này.
+
+### E.1 Tối ưu Spark (trước/sau, trên cùng một cụm, WordCount 1 GB, n=3)
+| Cấu hình | Executor | Thời gian (s) |
+|---|---|---:|
+| Trước: mặc định của cụm | 3 × (1 core, 1g), driver 1g; 8 task / 3 core | 231,4 ± 2,0 |
+| Sau | 2 × (2 core, 1600m), driver 512m; `maxPartitionBytes=64m` → 16 task / 4 core | **210,0 ± 0,8** (**−9,3%**) |
+
+**Giải thích:**
+- Hạ bộ nhớ driver/AM xuống 512m giải phóng đủ RAM để chạy 4 core thay vì 3 trong cùng 6144 MB container.
+- Chia nhỏ partition giúp các core được chia việc đều hơn.
+- Mức cải thiện nhỏ hơn mức tăng số core (+33%). Lý do: t3.medium chỉ có 2 vCPU mỗi worker, mà Python worker cùng JVM tranh nhau CPU trên đúng 2 vCPU đó, cộng thêm chi phí cố định khi khởi động.
+- Hướng cải thiện lớn hơn nằm ở mã nguồn: viết lại WordCount bằng DataFrame (`split` + `explode` + `groupBy`) để tránh lambda Python. Việc này nằm ngoài phạm vi "cùng một job" của giao thức benchmark.
+
+### E.2 Công sức và thời gian dựng cụm
+| Cách dựng | Số lệnh | Thời gian đến khi cụm chạy được |
+|---|---|---|
+| Script | 4 (`ec2-cluster.sh up`, `bootstrap-cluster.sh`, `s3-bucket.sh`, `configure-cluster.sh`) | khoảng 40 giây + 1 phút 44 giây + 1 phút 08 giây ≈ **3,5 phút** máy chạy, chưa tính thời gian gõ lệnh |
+| CloudFormation | 1 (`aws cloudformation deploy`) | **4 phút 37 giây**, gồm cả VPC và kiểm tra 2 DataNode |
+
+### E.3 Chi phí ước tính của nhánh tự dựng (giá On-Demand us-east-1, tham khảo 10/2026)
+| Hạng mục | Đơn giá | Dùng thực tế 25/10 | Ước tính |
+|---|---|---|---:|
+| EC2 t3.medium | $0,0416/giờ | khoảng 1,8 giờ (cụm script) + 1,6 giờ (2 lần dựng CFN), × 3 node | khoảng $0,42 |
+| Credit vượt (t3 unlimited) | $0,05/vCPU-giờ | khoảng 6 vCPU-giờ | khoảng $0,30 |
+| EBS gp3 | $0,08/GB-tháng | 6 × 30 GB, **vẫn tính phí khi máy đã Stop** | khoảng $0,48/ngày nếu giữ |
+| S3 Standard | khoảng $0,023/GB-tháng | khoảng 18 GB dữ liệu | khoảng $0,41/tháng |
+
+Bảng so sánh với EMR (m4.large cộng phí EMR) do Như tổng hợp.

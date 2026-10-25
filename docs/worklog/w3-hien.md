@@ -22,7 +22,12 @@
 - **Benchmark cụm tự dựng:**
   - Chạy theo plan: 3 mức dữ liệu × 3 lần × 2 job, `--deploy-mode cluster`.
   - Để kịp thời gian phiên lab, 2 cụm **giống hệt nhau** (cùng loại máy, cùng cấu hình, cùng script) chạy song song: cụm dựng bằng script chạy WordCount, cụm CloudFormation chạy aggregation. Mỗi cụm chỉ chạy 1 job tại một thời điểm.
-  - Kết quả: xem `benchmark/summary-self-managed.md` và `benchmark/runtime-self-managed.png`.
+  - Kết quả (trung bình 3 lần):
+    - WordCount: 1 GB **227,4 s**, 3 GB **577,4 s**, 5 GB **943,2 s**.
+    - Aggregation: 1 GB **118,4 s**, 3 GB **206,6 s**, 5 GB **285,7 s**.
+    - Hệ số biến thiên dưới 6%.
+    - Chi tiết: `benchmark/summary-self-managed.md`, `benchmark/runtime-self-managed.png`.
+  - Có 1 lần chạy bị loại (413 s, do chạy chồng với một job còn sót), ghi lại trong `results-excluded.csv`.
 - **Minh chứng:** `docs/evidence/w3/` (stack resources, SG inbound, S3 Block Public Access, CloudWatch dashboard, cụm CFN sau khi dựng).
 - **Đổi chéo với Như:** *(chưa làm; cần script EMR của Như)*
 
