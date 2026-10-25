@@ -90,24 +90,27 @@ Tổng 6144 MB container. Trong cluster mode, driver/AM chiếm 1 container 1536
 
 ## 4. Các bước dựng (Tuần 1)
 
-Chạy trong **AWS CloudShell (us-east-1)** hoặc trên laptop đã có AWS CLI và credentials của phiên Learner Lab:
+Chạy trong **AWS CloudShell (us-east-1)**: Learner Lab → bấm AWS → biểu tượng CloudShell. **Không** chạy ở terminal tích hợp trong trang Learner Lab, vì terminal đó dùng role `runserver`, không có quyền EC2. CloudShell tự có quyền của phiên lab và giữ lại `~/` giữa các phiên. Có thể chạy trên laptop nếu đã cấu hình credentials Learner Lab cho AWS CLI.
 
 ```bash
 git clone https://github.com/lhuynhu06-beep/DTDM.git && cd DTDM
+ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/id_ed25519   # chỉ lần đầu; public key được nạp vào node qua user-data
 # 0) Báo Như trong nhóm chat: "Hiển bật cụm EC2 từ hh:mm"
 ./infra/ec2-cluster.sh up                      # SG + 3 EC2 (tag, LabInstanceProfile, gp3 30 GB) → infra/cluster.env
-KEY=~/labsuser.pem ./scripts/bootstrap-cluster.sh   # setup-base.sh trên 3 node song song + SSH không mật khẩu
+./scripts/bootstrap-cluster.sh                 # setup-base.sh trên 3 node song song + SSH không mật khẩu
 ./infra/ec2-cluster.sh status                  # ảnh minh chứng
 ./infra/ec2-cluster.sh stop                    # cuối buổi
 ```
 
 `scripts/setup-base.sh <hostname>` chạy trên từng node và làm các việc sau: đặt hostname, ghi `/etc/hosts`, cài Java 11, tải Hadoop/Spark (có kiểm tra SHA-512), ghi biến môi trường và tạo SSH key trên master. Script chạy lại nhiều lần không gây lỗi. Nếu thiếu `cluster.env`, script tự tìm IP các node qua tag bằng AWS CLI và quyền của LabRole. Nhờ đó, script dùng lại được làm user-data cho template CloudFormation ở Tuần 3.
 
+**Kết quả chạy thật (25/10/2026, Account 2111-2549-0692):** `up` mất khoảng 40 giây, `bootstrap` mất 1 phút 44 giây. Cả 3 node đều có OpenJDK 11.0.33, Hadoop 3.3.6, Spark 3.5.5, và SSH không mật khẩu từ master hoạt động. Ảnh minh chứng nằm trong `evidence/w1/`.
+
 **Lưu ý:** sau mỗi lần Start lại cụm (nhất là sau khi phiên lab hết hạn), chạy `./infra/ec2-cluster.sh env` để cập nhật public IP. `/etc/hosts` trên các node không cần sửa.
 
 ## 5. Rủi ro và việc cần thống nhất với Như
 
-1. **Bucket S3 nằm ở tài khoản nào?** `s3://hadoop-spark-lab-24139035` do Như tạo. Nếu hai bạn dùng **hai tài khoản Learner Lab khác nhau**, `LabRole` của cụm EC2 sẽ **không đọc được** bucket này. Có hai cách:
+1. **Bucket S3:** ngày 25/10, từ tài khoản của Hiển, `aws s3 ls s3://hadoop-spark-lab-24139035` trả về **NoSuchBucket**, tức bucket chưa tồn tại hoặc đặt sai tên. Như cần kiểm tra lại. Ngoài ra còn câu hỏi bucket nằm ở tài khoản nào: `s3://hadoop-spark-lab-24139035` do Như tạo. Nếu hai bạn dùng **hai tài khoản Learner Lab khác nhau**, `LabRole` của cụm EC2 sẽ **không đọc được** bucket này. Có hai cách:
    - (a) Như thêm bucket policy cho phép `arn:aws:iam::<Account-ID-của-Hiển>:role/LabRole` gọi `s3:GetObject`, `s3:ListBucket` và `s3:PutObject` (giới hạn ở `results/self-managed/*`).
    - (b) Hiển tạo bucket riêng có tag, rồi chép `data/` và `jobs/` sang.
 
