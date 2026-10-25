@@ -18,10 +18,10 @@
   - CloudWatch Agent chạy trên 3 node, đẩy RAM, disk, CPU và swap vào namespace `HadoopSelfManaged`.
   - Dashboard `HadoopSelfManaged-hadoop-selfmanaged` gồm CPU, RAM, Disk, CPUCreditBalance và Network.
   - 2 alarm: RAM worker1 > 90% trong 3 phút; CPU master > 85% trong 5 phút.
-  - Nhận xét từ dashboard: **CPUCreditBalance của 2 worker về 0** sau khoảng 15 phút tải liên tục. Instance chạy ở chế độ *unlimited* nên không bị bóp CPU, nhưng bị tính phí credit vượt. Khi so với m4.large phải tính đến điểm này.
+  - Nhận xét từ dashboard: **CPUCreditBalance của 2 worker về 0** ngay sau vài phút đầu chạy tải và giữ ở 0 suốt benchmark. Instance chạy ở chế độ *unlimited* nên không bị bóp CPU, nhưng bị tính phí credit vượt. Khi so với m4.large phải tính đến điểm này.
 - **Benchmark cụm tự dựng:**
   - Chạy theo plan: 3 mức dữ liệu × 3 lần × 2 job, `--deploy-mode cluster`.
-  - Để kịp thời gian phiên lab, 2 cụm **giống hệt nhau** (cùng loại máy, cùng cấu hình, cùng script) chạy song song: cụm dựng bằng script chạy WordCount, cụm CloudFormation chạy aggregation. Mỗi cụm chỉ chạy 1 job tại một thời điểm.
+  - Để kịp thời gian phiên lab, 2 cụm **giống hệt nhau** (cùng loại máy, cùng cấu hình, cùng script) chạy song song: cụm dựng bằng script chạy WordCount 1 GB và 3 GB, cùng phần tối ưu; cụm CloudFormation chạy aggregation 1/3/5 GB và WordCount 5 GB. Mỗi cụm chỉ chạy 1 job tại một thời điểm.
   - Kết quả (trung bình 3 lần):
     - WordCount: 1 GB **227,4 s**, 3 GB **577,4 s**, 5 GB **943,2 s**.
     - Aggregation: 1 GB **118,4 s**, 3 GB **206,6 s**, 5 GB **285,7 s**.
