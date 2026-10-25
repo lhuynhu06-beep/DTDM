@@ -24,11 +24,13 @@ for (cfg, job, gb), v in sorted(g.items()):
     lines.append(f"| {cfg} | {job} | {gb} | {len(v)} | {mean:.1f} | {st.pstdev(v):.1f} | {min(v):.1f} | "
                  f"{max(v):.1f} | {gb * 1024 / mean:.1f} |")
 
-base = {(j, s): st.mean(v) for (c, j, s), v in g.items() if c == "baseline"}
-tuned = {(c, j, s): st.mean(v) for (c, j, s), v in g.items() if c != "baseline"}
+# So sánh trước/sau tối ưu trên CÙNG một cụm: "tuned" so với "tune-baseline" (nếu có), không thì so với "baseline"
+ref = "tune-baseline" if any(c == "tune-baseline" for c, _, _ in g) else "baseline"
+base = {(j, s): st.mean(v) for (c, j, s), v in g.items() if c == ref}
+tuned = {(c, j, s): st.mean(v) for (c, j, s), v in g.items() if c not in ("baseline", "tune-baseline")}
 if tuned:
     lines += ["", "## Trước / sau tối ưu Spark", "",
-              "| Cấu hình | Job | GB | Baseline (s) | Sau tối ưu (s) | Thay đổi |", "|---|---|---:|---:|---:|---:|"]
+              f"| Cấu hình | Job | GB | Trước – {ref} (s) | Sau tối ưu (s) | Thay đổi |", "|---|---|---:|---:|---:|---:|"]
     for (c, j, s), t in sorted(tuned.items()):
         b = base.get((j, s))
         if b:
