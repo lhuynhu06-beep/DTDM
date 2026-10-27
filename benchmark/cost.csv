@@ -1,5 +1,0 @@
-Component,Instance Type,Quantity,EC2 Price Per Hour ($),EMR Fee Per Hour ($),Total Cost Per Hour ($)
-Self-Managed Master,t3.medium,1,0.0416,0.0000,0.0416
-Self-Managed Worker,t3.medium,2,0.0416,0.0000,0.0832
-EMR Master,m4.xlarge,1,0.2000,0.0600,0.2600
-EMR Core,m4.xlarge,2,0.2000,0.0600,0.5200
