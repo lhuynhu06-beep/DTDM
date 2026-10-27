@@ -1,0 +1,5 @@
+Service,Instance Type,Node Count,Hours Run,Price per Hour (EC2 + EMR) ($),Total Cost ($)
+EMR Master,m4.xlarge,1,2,0.248,0.496
+EMR Core/Task,m4.xlarge,2,2,0.248,0.992
+Amazon S3,Standard Storage,-,-,-,0.010
+Total Estimated Cost,-,-,-,-,1.498
