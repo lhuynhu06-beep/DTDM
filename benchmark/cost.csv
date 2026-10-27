@@ -1,5 +1,4 @@
-# Ghi chú: Do AWS Learner Lab không có m4.large, nhóm dùng m4.xlarge (1 Master + 2 Core = 12 vCPU), tuân thủ giới hạn <= 32 vCPU của thầy.
-Service,Instance Type,Node Count,Hours Run,Price per Hour (EC2 + EMR) ($),Total Cost ($)
+"Dịch vụ (Lưu ý: Do Learner Lab chỉ có m4.xlarge, nhóm dùng 1 Master + 2 Core = 12 vCPU, tuân thủ giới hạn <= 32 vCPU)","Loại Instance","Số lượng Node","Số giờ chạy","Đơn giá/giờ (EC2 + EMR) ($)","Tổng chi phí ($)"
 EMR Master,m4.xlarge,1,2,0.248,0.496
 EMR Core/Task,m4.xlarge,2,2,0.248,0.992
 Amazon S3,Standard Storage,-,-,-,0.010
