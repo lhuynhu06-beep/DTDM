@@ -1,0 +1,2 @@
+Job_Name,Cluster_Type,Instance_Type,Nodes,Execution_Time_Sec,Status
+WordCount-Step,EMR,m4.xlarge,3,40,Completed
