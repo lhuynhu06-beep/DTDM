@@ -38,7 +38,7 @@ Thống nhất quy chuẩn thực thi bài thử nghiệm (benchmark) giữa c�
     *   *Cụm EC2 tự dựng:* 3 instances x $0.0416/giờ = ~$0.125 / giờ.
     *   *Cụm EMR:* 3 instances x ($0.10 tiền máy EC2 + $0.05 phí dịch vụ EMR) = ~$0.450 / giờ.
 *   **Chi phí thực tế tiêu tốn (Actual Lab Budget):**
-    *   Chi phí được tính toán chính xác dựa trên tổng thời gian hoạt động thực tế tích lũy của các tài nguyên trong buổi làm Lab (Cụm EMR hoạt động tích lũy ~1.0 giờ bao gồm cả thời gian chạy thành công và cấu hình thử nghiệm; cụm EC2 tự dựng của Hiển chạy tích lũy ~2.0 giờ) [INDEX].
-    *   Tổng chi phí thực tế nhóm tiêu tốn là rất nhỏ, chỉ khoảng **$0.71 USD**, đảm bảo an toàn tuyệt đối cho ngân sách $100 credits cấp phát của tài khoản AWS Learner Lab mà không lo bị cạn kiệt tài nguyên ngầm [INDEX].
+    *   Chi phí được tính toán chính xác dựa trên tổng thời gian hoạt động thực tế tích lũy của các tài nguyên trong buổi làm Lab (Cụm EMR hoạt động tích lũy ~1.0 giờ bao gồm cả thời gian chạy thành công và cấu hình thử nghiệm; cụm EC2 tự dựng của Hiển chạy tích lũy ~2.0 giờ).
+    *   Tổng chi phí thực tế nhóm tiêu tốn là rất nhỏ, chỉ khoảng **$0.71 USD**, đảm bảo an toàn tuyệt đối cho ngân sách $100 credits cấp phát của tài khoản AWS Learner Lab mà không lo bị cạn kiệt tài nguyên ngầm.
 
 
