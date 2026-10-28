@@ -33,6 +33,12 @@ Thống nhất quy chuẩn thực thi bài thử nghiệm (benchmark) giữa c�
 *   **Sinh viên Như (EMR):** 9 giờ công (Nghiên cứu tài liệu EMR, cấu hình LabRole, viết script CLI tự động hóa, thực hiện chạy benchmark các file và thu thập số liệu).
 *   **Sinh viên Hiển (EC2):** 10 giờ công (Tạo hạ tầng EC2, kết nối cụm Master-Worker, chỉnh sửa file XML hệ thống, chạy tối ưu cấu hình RAM/vCPU cho Spark).
 
-### D. Chi phí ước tính tài nguyên (AWS Cost per Hour)
-*   **Cụm EC2 tự dựng:** 3 instances x $0.0416/giờ = ~$0.125 / giờ (Tiết kiệm trên lý thuyết nhưng tốn thời gian quản trị).
-*   **Cụm EMR:** 3 instances x ($0.10 tiền máy EC2 + $0.05 phí dịch vụ EMR) = ~$0.450 / giờ (Chi phí theo giờ cao hơn nhưng tối ưu bằng cơ chế tự hủy cụm ngay sau khi xong tác vụ `--auto-terminate`).
+### D. Phân tích chi phí tài nguyên (AWS Cost Analysis)
+*   **Đơn giá ước tính theo giờ (On-Demand Price per Hour):**
+    *   *Cụm EC2 tự dựng:* 3 instances x $0.0416/giờ = ~$0.125 / giờ.
+    *   *Cụm EMR:* 3 instances x ($0.10 tiền máy EC2 + $0.05 phí dịch vụ EMR) = ~$0.450 / giờ.
+*   **Chi phí thực tế tiêu tốn (Actual Lab Budget):**
+    *   Chi phí được tính toán chính xác dựa trên tổng thời gian hoạt động thực tế tích lũy của các tài nguyên trong buổi làm Lab (Cụm EMR hoạt động tích lũy ~1.0 giờ bao gồm cả thời gian chạy thành công và cấu hình thử nghiệm; cụm EC2 tự dựng của Hiển chạy tích lũy ~2.0 giờ) [INDEX].
+    *   Tổng chi phí thực tế nhóm tiêu tốn là rất nhỏ, chỉ khoảng **$0.71 USD**, đảm bảo an toàn tuyệt đối cho ngân sách $100 credits cấp phát của tài khoản AWS Learner Lab mà không lo bị cạn kiệt tài nguyên ngầm [INDEX].
+
+
