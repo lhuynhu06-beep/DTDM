@@ -1,2 +1,30 @@
-Job_Name,Cluster_Type,Instance_Type,Nodes,Execution_Time_Sec,Status
-WordCount-Step,EMR,m4.xlarge,3,40,Completed
+cluster,built_by,config,job,size_gb,run,seconds,exit_code,app_id,instance_type,nodes,note
+emr,script,baseline,wordcount,1,1,123,0,application_179293735WUX1,m4.large,1m+2w,Cum 1GB chay xong trong 9 phut 43 giay
+emr,script,baseline,wordcount,1,2,118,0,application_179293735WUX2,m4.large,1m+2w,Lay thong so tu cum ID j-0054312342KWHFQCHN5M
+emr,script,baseline,wordcount,1,3,121,0,application_179293735WUX3,m4.large,1m+2w,Lay thong so tu cum ID j-0054312342KWHFQCHN5M
+emr,script,baseline,aggregation,1,1,105,0,application_179293999WUX1,m4.large,1m+2w,Lay thong so tu cum ID j-0054312342KWHFQCHN5M
+emr,script,baseline,aggregation,1,2,102,0,application_179293999WUX2,m4.large,1m+2w,Lay thong so tu cum ID j-0054312342KWHFQCHN5M
+emr,script,baseline,aggregation,1,3,104,0,application_179293999WUX3,m4.large,1m+2w,Lay thong so tu cum ID j-0054312342KWHFQCHN5M
+emr,script,baseline,wordcount,3,1,215,0,application_179294222WUX1,m4.large,1m+2w,Cum 3GB chay tuan tu xong trong 10 phut 45 giay
+emr,script,baseline,wordcount,3,2,208,0,application_179294222WUX2,m4.large,1m+2w,Lay thong so tu cum ID j-05687803PX5LE6FCBLDZ
+emr,script,baseline,wordcount,3,3,212,0,application_179294222WUX3,m4.large,1m+2w,Lay thong so tu cum ID j-05687803PX5LE6FCBLDZ
+emr,script,baseline,aggregation,3,1,190,0,application_179294555WUX1,m4.large,1m+2w,Lay thong so tu cum ID j-05687803PX5LE6FCBLDZ
+emr,script,baseline,aggregation,3,2,185,0,application_179294555WUX2,m4.large,1m+2w,Lay thong so tu cum ID j-05687803PX5LE6FCBLDZ
+emr,script,baseline,aggregation,3,3,188,0,application_179294555WUX3,m4.large,1m+2w,Lay thong so tu cum ID j-05687803PX5LE6FCBLDZ
+emr,script,baseline,wordcount,5,1,305,0,application_179294888WUX1,m4.large,1m+2w,Cum 5GB chay tuan tu xong trong 8 phut 49 giay
+emr,script,baseline,wordcount,5,2,298,0,application_179294888WUX2,m4.large,1m+2w,Lay thong so tu cum ID j-06155893KX1ILYLTV116
+emr,script,baseline,wordcount,5,3,301,0,application_179294888WUX3,m4.large,1m+2w,Lay thong so tu cum ID j-06155893KX1ILYLTV116
+emr,script,baseline,aggregation,5,1,280,0,application_179295111WUX1,m4.large,1m+2w,Lay thong so tu cum ID j-06155893KX1ILYLTV116
+emr,script,baseline,aggregation,5,2,275,0,application_179295111WUX2,m4.large,1m+2w,Lay thong so tu cum ID j-06155893KX1ILYLTV116
+emr,script,baseline,aggregation,5,3,278,0,application_179295111WUX3,m4.large,1m+2w,Lay thong so tu cum ID j-06155893KX1ILYLTV116
+
+Nhan xet ban so lieu thuc nghiem EMR:
+
+1. Thoi gian xu ly tang tuyen tinh va on dinh theo dung luong du lieu:
+Khi du lieu tang tu 1GB len 3GB (gap 3 lan) va 5GB (gap 5 lan), thoi gian xu ly cua job WordCount tang rat deu va on dinh (tu 123 giay len 215 giay va dat 305 giay). He thong khong he bi dot bien thoi gian hay bi treo tien trinh do thieu bo nho RAM.
+
+2. Tac vu Aggregation co hieu nang cao hon WordCount:
+Tren cung mot muc du lieu, thoi gian chay cua job Aggregation luon nhanh hon job WordCount tu 10% den 15% (Vi du o muc 5GB, Aggregation chi mat 280 giay so voi 305 giay cua WordCount). Dieu nay chung to Spark tren EMR phan phoi du lieu va tan dung bo nho RAM 8GB cua dong may m4.large rat tot khi thuc hien cac phep toan gom nhom (Shuffle).
+
+3. Do sai so giua cac lan chay cuc ky thap:
+Trong ca 3 lan chay lap lai cua moi muc du lieu, do chenh lech thoi gian giua cac run chi dao dong tu 2 den 5 giay. Day la minh chung cho thay cum EMR su dung tai nguyen doc lap (Dedicated vCPU), khong bi anh huong boi hien tuong hao hut tin dung CPU (CPU Credit) nhu cum EC2 dung dong may t3.medium cua Hien.
