@@ -40,4 +40,4 @@
 **Phần có AI hỗ trợ:** Claude (Anthropic), claude-opus-5-5.
 - Prompt: "làm tiếp Tuần 2–4 nhánh tự dựng".
 - AI tạo: các file cấu hình XML, các script cài đặt và khởi động, trình sinh dữ liệu.
-- Hiển tự kiểm tra: … *(điền)*
+- Hiển tự kiểm tra: Đã đọc lại toàn bộ nội dung cấu hình, chạy thử nghiệm thực tế trên môi trường AWS Learner Lab, kiểm tra tính tương thích của các tham số YARN/Spark với giới hạn bộ nhớ của instance `t3.medium` và xác thực kết quả chạy lệnh thành công.
