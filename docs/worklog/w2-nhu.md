@@ -1,4 +1,4 @@
-Tuần 2 (26/10–01/11/2026) Lê Huỳnh Như (24139035) – 10.0 giờ:
+**Tuần 2 (26/10–01/11/2026) Lê Huỳnh Như (24139035) – 10.0 giờ:**
 - Tìm hiểu quy trình vận hành cụm Amazon EMR (cấu hình Primary/Core node, các cơ chế nộp Spark Step execution) và thiết lập môi trường Managed Service.
 - Họp thống nhất giao thức benchmark với Đỗ Minh Hiển: chốt phương án đo benchmark cùng job (WordCount, Aggregation), cùng dataset (1GB, 3GB, 5GB), mỗi mức chạy 3 lần lấy trung bình thời gian execution time; phân tích khác biệt cấu hình phần cứng (Self-Managed dùng 3 node t3.medium: 2 vCPU, 4 GiB RAM; EMR dùng 3 node m4.large: 2 vCPU, 8 GiB RAM); Như chủ trì soạn file quy hoạch benchmark/plan.md và file mẫu benchmark/results.csv, benchmark/results-self-managed.csv trên Git.
 - Khởi tạo cụm Amazon EMR bằng giao diện AWS Management Console (Account ID 9337-3325-7957, Region us-east-1, ngày 28/10/2026):
