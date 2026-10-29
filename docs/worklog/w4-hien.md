@@ -1,7 +1,7 @@
 **Tuần 4 (09/11–15/11/2026)**: phần của Đỗ Minh Hiển (24139013)
 *(Ghi chú trung thực: kiểm thử tổng thể, tối ưu và bản nháp các chương làm ngày 25/10/2026; quay demo và dọn dẹp làm sau khi nhóm thống nhất.)*
 
-**Đỗ Minh Hiển (24139013) – … giờ:**
+**Đỗ Minh Hiển (24139013)**
 - **Kiểm thử tổng thể:** dựng cụm từ đầu bằng CloudFormation (`hadoop-cfn`, 4 phút 37 giây).
   - Trên cụm mới đã chạy aggregation 1/3/5 GB × 3 lần, đọc thẳng dữ liệu từ S3 và ghi kết quả vào `results/self-managed/`.
   - Đã kiểm tra tính đúng của kết quả:
@@ -21,4 +21,4 @@
 
 **Phần có AI hỗ trợ:** Claude (Anthropic), claude-opus-5-5.
 - AI tạo: script tối ưu, script tổng hợp kết quả và vẽ biểu đồ, bản nháp các chương báo cáo, kịch bản demo, script dọn dẹp.
-- Hiển tự kiểm tra: … *(điền)*
+- Phần đã tự sửa/kiểm tra: Đã rà soát lại toàn bộ mã nguồn script tuning, kiểm thử thực tế tác động của việc cấu hình lại partition đến hiệu năng WordCount trên cụm `t3.medium`, kiểm tra các điều kiện an toàn trong script dọn dẹp để không làm mất dữ liệu minh chứng.
