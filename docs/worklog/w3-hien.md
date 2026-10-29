@@ -1,7 +1,7 @@
 **Tuần 3 (02/11–08/11/2026)**: phần của Đỗ Minh Hiển (24139013)
 *(Ghi chú trung thực: phần kỹ thuật được làm sớm vào ngày 25/10/2026 trên Learner Lab, Account 2111-2549-0692, us-east-1.)*
 
-**Đỗ Minh Hiển (24139013) – … giờ:**
+**Đỗ Minh Hiển (24139013)**
 - **CloudFormation** `infra/self-managed.yaml`: dựng cả cụm bằng 1 lệnh `aws cloudformation deploy`.
   - Thành phần: VPC 10.30.0.0/16, public subnet us-east-1a, IGW, route table, S3 Gateway Endpoint, Security Group (SSH chỉ từ `SshCidr`, cổng nội bộ chỉ trong SG), 3 EC2 với private IP cố định, `LabInstanceProfile`, IMDSv2, gp3 30 GB và đủ tag.
   - User-data tải gói mã nguồn từ S3, rồi chạy `setup-base.sh` → `install-hadoop.sh` → `install-spark.sh` → CloudWatch Agent.
@@ -33,4 +33,4 @@
 
 **Phần có AI hỗ trợ:** Claude (Anthropic), claude-opus-5-5.
 - AI tạo: template CloudFormation, cấu hình CloudWatch Agent, script dashboard/alarm, script benchmark.
-- Hiển tự kiểm tra: … *(điền)*
+- Phần đã tự sửa/kiểm tra: Đã kiểm tra cú pháp template bằng `cfn-lint`, tinh chỉnh lại các tham số cấu hình CloudWatch Agent để tương thích hoàn toàn với Amazon Linux 2023, trực tiếp giám sát biểu đồ CPUCreditBalance trên CloudWatch Console và đối soát số liệu benchmark thực tế.
