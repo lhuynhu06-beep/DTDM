@@ -1,32 +1,45 @@
-Tuần 3 (02/11–08/11/2026) Lê Huỳnh Như (24139035) – 9.0 giờ:
+**Tuần 3 (02/11–08/11/2026) Lê Huỳnh Như (24139035) – 9.0 giờ:**
+
 - Cấu hình Bảo mật & Giám sát EMR qua AWS CloudWatch (2.5 giờ):
-  - Kiểm tra và thiết lập bảo mật đa lớp cho hạ tầng EMR và S3 Storage: xác nhận bật Block Public Access cho toàn bộ S3 Bucket s3://hadoop-spark-lab-24139035, bật tự động mã hóa máy chủ SSE-S3 (AES-256), và rà soát cấu hình Security Group mặc định của EMR (ElasticMapReduce-master-Custom, ElasticMapReduce-slave-Custom) đảm bảo chặn mọi lưu lượng công khai.
-  - Thiết lập hệ thống giám sát EMR trên AWS CloudWatch Console: theo dõi trực tiếp các thông số vận hành thời gian thực bao gồm IsIdle, AppsRunning, AppsPending, HDFSUtilization, YARNMemoryAvailableMB và CPUUtilization.
-  - Viết file cấu hình amazon-cloudwatch-agent.json để thu thập các thông số RAM (mem_used_percent), CPU (cpu_usage_idle), và dung lượng đĩa (disk_used_percent) trên hệ điều hành Amazon Linux 2023. Đoạn mã JSON cấu hình cho CloudWatch Agent hỗ trợ collectd và metrics system.
-  - Chỉnh sửa tần số thu thập (metrics_collection_interval) thành 60 giây để tránh vượt định mức Request của Learner Lab.
+  - Kiểm tra và thiết lập bảo mật đa lớp cho hạ tầng EMR và S3 Storage: xác nhận bật Block Public Access cho toàn bộ S3 Bucket `s3://hadoop-spark-lab-24139035`, bật tự động mã hóa máy chủ SSE-S3 (AES-256), và rà soát cấu hình Security Group mặc định của EMR (`ElasticMapReduce-master-Custom`, `ElasticMapReduce-slave-Custom`) đảm bảo chặn mọi lưu lượng công khai.
+  - Thiết lập hệ thống giám sát EMR trên AWS CloudWatch Console: theo dõi trực tiếp các thông số vận hành thời gian thực bao gồm `IsIdle`, `AppsRunning`, `AppsPending`, `HDFSUtilization`, `YARNMemoryAvailableMB` và `CPUUtilization`.
+  - Viết file cấu hình `amazon-cloudwatch-agent.json` để thu thập các thông số RAM (`mem_used_percent`), CPU (`cpu_usage_idle`), và dung lượng đĩa (`disk_used_percent`) trên hệ điều hành Amazon Linux 2023. Đoạn mã JSON cấu hình cho CloudWatch Agent hỗ trợ collectd và metrics system.
+  - Chỉnh sửa tần số thu thập (`metrics_collection_interval`) thành 60 giây để tránh vượt định mức Request của Learner Lab.
   - Cấu hình tạo Dashboard giám sát và khởi tạo 1 Alarm cảnh báo tự động khi chỉ số CPUUtilization chạm ngưỡng 85% trong khoảng thời gian 5 phút liên tục.
+
 - Chạy thực nghiệm Benchmark chính thức trên Amazon EMR (3.0 giờ):
   - Kiểm tra và đảm bảo cụm Self-Managed EC2 của Hiển đã ở trạng thái Stopped để không bị vượt quá giới hạn 32 vCPUs của AWS Learner Lab.
-  - Chạy script benchmark/run-emr-benchmark-Nhu.sh thực thi tự động 2 Spark Jobs (WordCount và Aggregation) trên 3 mức dữ liệu (1GB, 3GB, 5GB), mỗi kịch bản thực hiện lặp lại 3 lần lấy giá trị trung bình để đảm bảo tính khách quan.
-  - Ghi nhận đầy đủ dữ liệu thời gian thực thi (execution time) vào file kết quả benchmark/results.csv và tổng hợp báo cáo chi tiết tại benchmark/summary-emr.md.
-  - Kích hoạt cờ --auto-terminate để cụm EMR tự động giải phóng tài nguyên ngay sau khi kết thúc chuỗi thực nghiệm.
+  - Chạy script `benchmark/run-emr-benchmark-Nhu.sh` thực thi tự động 2 Spark Jobs (WordCount và Aggregation) trên 3 mức dữ liệu (1GB, 3GB, 5GB), mỗi kịch bản thực hiện lặp lại 3 lần lấy giá trị trung bình để đảm bảo tính khách quan.
+  - Ghi nhận đầy đủ dữ liệu thời gian thực thi (execution time) vào file kết quả `benchmark/results.csv` và tổng hợp báo cáo chi tiết tại `benchmark/summary-emr.md`.
+  - Kích hoạt cờ `--auto-terminate` để cụm EMR tự động giải phóng tài nguyên ngay sau khi kết thúc chuỗi thực nghiệm.
+
 - Thu thập chi phí & Lập bảng so sánh tổng kết EMR vs Self-Managed (2.0 giờ):
-  - Tra cứu đơn giá niêm yết từ AWS Pricing (Region us-east-1): giá EC2 t3.medium ($0.0416/giờ), EBS gp2 ($0.10/GB/tháng), EC2 m4.large ($0.10/giờ) và phí quản lý EMR m4.large ($0.027/giờ).
-  - Thu thập và đối chiếu lượng tài nguyên/ngân sách Lab đã tiêu thụ, lập bảng tính chi phí chi tiết tại benchmark/cost.csv.
-  - Viết tài liệu so sánh tổng hợp benchmark/Sosanhw3.md phân tích toàn diện 4 tiêu chí: Hiệu năng thực thi (EMR tối ưu hơn ~35-40%), Chi phí vận hành, Số lượng bước thao tác (EMR tốn ít bước khởi tạo hơn) và Giờ công triển khai.
+  - Tra cứu đơn giá niêm yết từ AWS Pricing (Region us-east-1): giá EC2 `t3.medium` ($0.0416/giờ), EBS gp2 ($0.10/GB/tháng), EC2 `m4.large` ($0.10/giờ) và phí quản lý EMR `m4.large` ($0.027/giờ).
+  - Thu thập và đối chiếu lượng tài nguyên/ngân sách Lab đã tiêu thụ, lập bảng tính chi phí chi tiết tại `benchmark/cost.csv`.
+  - Viết tài liệu so sánh tổng hợp `benchmark/Sosanhw3.md` phân tích toàn diện 4 tiêu chí: Hiệu năng thực thi (EMR tối ưu hơn ~35-40%), Chi phí vận hành, Số lượng bước thao tác (EMR tốn ít bước khởi tạo hơn) và Giờ công triển khai.
+
 - Đổi chéo công nghệ & Đánh giá chéo (1.5 giờ - làm chung):
-  - Nhận bàn giao và tự mình thực thi triển khai cụm Self-Managed EC2 tự động bằng CloudFormation template infra/self-managed.yaml do Hiển viết (dựng thành công cụm 3 node t3.medium trong 4 phút 37 giây).
-  - Hướng dẫn và hỗ trợ Hiển tự chạy lại toàn bộ pipeline EMR tự động bằng script infra/emr-create.sh của Như.
+  - Nhận bàn giao và tự mình thực thi triển khai cụm Self-Managed EC2 tự động bằng CloudFormation template `infra/self-managed.yaml` do Hiển viết (dựng thành công cụm 3 node `t3.medium` trong 4 phút 37 giây).
+  - Hướng dẫn và hỗ trợ Hiển tự chạy lại toàn bộ pipeline EMR tự động bằng script `infra/emr-create.sh` của Như.
   - Ghi chú nhận xét, giải đáp các thắc mắc chuyên môn trong quá trình triển khai đổi chéo.
-- Minh chứng:
-  - Tài liệu & Bảng tính: benchmark/results.csv, benchmark/run-emr-benchmark-Nhu.sh, benchmark/summary-emr.md, benchmark/cost.csv, benchmark/Sosanhw3.md.
-  - Hình ảnh lưu trong docs/evidence/w3/: s3-block-public-access.png (xác nhận bảo mật Block Public Access S3), emr-cluster-properties.png (thông tin cấu hình bảo mật cụm EMR), emr-cloudwatch-metrics.png (biểu đồ CloudWatch Metrics của EMR).
-- Khó khăn gặp phải và giải pháp:
-  - (1) Nguy cơ vượt hạn ngạch AWS Learner Lab khi gửi metric CloudWatch liên tục. Giải pháp: Điều chỉnh tần số thu thập metrics_collection_interval lên 60 giây trong file amazon-cloudwatch-agent.json để tiết kiệm tài nguyên và số lượng request.
-  - (2) Đảm bảo độ chính xác bài đo Benchmark không bị ảnh hưởng bởi hạ tầng còn dư thừa. Giải pháp: Thực hiện kiểm tra nghiêm ngặt trạng thái cụm Self-Managed (Stopped) trước khi kích hoạt script benchmark EMR.
-Kế hoạch tuần sau (Như): Đồng bộ toàn bộ tài liệu báo cáo tổng kết nhóm, rà soát lại cây thư mục Repository Git, chuẩn bị slide thuyết trình và hoàn thiện các file worklog cá nhân để nộp bài cuối kỳ.
-Phần có AI hỗ trợ (Như):
+
+**- Minh chứng:**
+  - Tài liệu & Bảng tính: `benchmark/results.csv`, `benchmark/run-emr-benchmark-Nhu.sh`, `benchmark/summary-emr.md`, `benchmark/cost.csv`, `benchmark/Sosanhw3.md`.
+  - Hình ảnh lưu trong `docs/evidence/w3/`: 
+    - `s3-block-public-access.png` (xác nhận bảo mật Block Public Access S3)
+    - `emr-cluster-properties.png` (thông tin cấu hình bảo mật cụm EMR)
+    - `emr-cloudwatch-metrics.png` (biểu đồ CloudWatch Metrics của EMR).
+
+**- Khó khăn gặp phải và giải pháp:**
+  - (1) Nguy cơ vượt hạn ngạch AWS Learner Lab khi gửi metric CloudWatch liên tục. 
+    *Giải pháp:* Điều chỉnh tần số thu thập `metrics_collection_interval` lên 60 giây trong file `amazon-cloudwatch-agent.json` để tiết kiệm tài nguyên và số lượng request.
+  - (2) Đảm bảo độ chính xác bài đo Benchmark không bị ảnh hưởng bởi hạ tầng còn dư thừa. 
+    *Giải pháp:* Thực hiện kiểm tra nghiêm ngặt trạng thái cụm Self-Managed (Stopped) trước khi kích hoạt script benchmark EMR.
+
+**Kế hoạch tuần sau (Như):** Đồng bộ toàn bộ tài liệu báo cáo tổng kết nhóm, rà soát lại cây thư mục Repository Git, chuẩn bị slide thuyết trình và hoàn thiện các file worklog cá nhân để nộp bài cuối kỳ.
+
+**Phần có AI hỗ trợ (Như):**
 - Công cụ / model: Claude (Claude 3.5 Sonnet).
-- Prompt chính: "Sửa lỗi 'ClassNotFoundException: org.apache.hadoop.fs.s3a.S3AFileSystem' khi chạy spark-submit trên cụm Hadoop 3.3 tự dựng kết nối S3."
-- Nội dung AI tạo: Hướng dẫn khai báo spark.jars.packages hoặc copy cặp file hadoop-aws.jar và aws-java-sdk-bundle.jar khớp phiên bản vào thư mục jars của Spark. Đoạn cấu hình spark-defaults.conf sử dụng fs.s3a.aws.credentials.provider=com.amazonaws.auth.InstanceProfileCredentialsProvider.
-- Phần đã tự sửa/hoàn thiện: Cấu hình tự động nhận quyền từ LabInstanceProfile mà không cần điền thủ công AWS Access/Secret Key.
+- Prompt chính: *"Viết file cấu hình amazon-cloudwatch-agent.json để thu thập các thông số RAM (mem_used_percent), CPU (cpu_usage_idle), và dung lượng đĩa (disk_used_percent) trên hệ điều hành Amazon Linux 2023."*
+- Nội dung AI tạo: Đoạn mã JSON cấu hình cho CloudWatch Agent hỗ trợ collectd và metrics system.
+- Phần đã tự sửa/hoàn thiện: Chỉnh sửa tần số thu thập (`metrics_collection_interval`) thành 60 giây để tránh vượt định mức Request của Learner Lab; Cấu hình tạo Dashboard và 1 Alarm cảnh báo khi CPU chạm mức 85% trên AWS CloudWatch Console.
