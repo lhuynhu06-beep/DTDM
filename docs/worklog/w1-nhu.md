@@ -22,6 +22,6 @@
 Kế hoạch tuần sau (Như): Tạo cụm Amazon EMR (phiên bản emr-6.10.x gồm 1 máy Primary + 2 máy Core m4.large), viết script infra/emr-create.sh bằng AWS CLI để tự động tạo cụm và nộp bài chạy 2 file PySpark (wordcount.py, aggregation.py) từ S3, bật chế độ --auto-terminate để cụm tự tắt ngay khi chạy xong giúp tiết kiệm tiền Lab.
 Phần có AI hỗ trợ (Như):
 - Công cụ / model: Claude (Anthropic), model claude-3-5-sonnet.
-- Prompt chính: "Đọc file phân công và repo, giúp tôi làm nhiệm vụ Tuần 1 nhánh Managed Service (tạo S3 bucket qua AWS Console, cấu hình bảo mật, chuẩn bị dataset 1GB/3GB/5GB, S3 policy Cross-Account và viết 2 script PySpark WordCount & Aggregation)".
-- Nội dung AI tạo: bản nháp quy hoạch S3, khung mã nguồn jobs/wordcount.py, jobs/aggregation.py và file cấu hình JSON infra/s3-bucket-policy.json.
-- Phần đã tự sửa/kiểm tra: tự thao tác tạo Bucket và cấu hình bảo mật trực tiếp trên AWS S3 Console, kiểm tra lại code PySpark, sửa lại cách tách từ tiếng Việt, khai báo lại Schema cho file CSV, test chạy thử local thành công, dán đúng mã ARN LabRole của Hiển vào S3 Policy và lưu policy thành công trên S3 Console.
+- Prompt chính: "Viết job PySpark thực hiện WordCount và Aggregation đọc/ghi dữ liệu trực tiếp từ S3; hỗ trợ phác thảo sơ đồ kiến trúc".
+- Nội dung AI tạo: Mã nguồn PySpark mẫu cho 2 job wordcount.py và aggregation.py; Sơ đồ cấu trúc các node.
+- Phần đã tự sửa/hoàn thiện: Tinh chỉnh các thông số cấu hình Spark (như spark.sql.shuffle.partitions) phù hợp với cấu hình máy t3.medium (4 GiB RAM) giúp tối ưu ~9.3% thời gian chạy.
