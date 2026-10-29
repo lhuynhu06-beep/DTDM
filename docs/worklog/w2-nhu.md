@@ -22,6 +22,7 @@ Tuần 2 (26/10–01/11/2026) Lê Huỳnh Như (24139035) – 10.0 giờ:
   - (1) Do chạy script liên tiếp dẫn đến hiện tượng quá tải vCPU Quotas (giới hạn 32 vCPU của Learner Lab) khiến các cụm sau bị báo lỗi Échec d'instance / Instance Launch Failed. Giải pháp: Khắc phục bằng cách chủ động giải phóng cụm lỗi và chuyển sang cơ chế chạy tuần tự.
   - (2) Lỗi permission khi tạo cụm EMR do tự tạo IAM Role mới. Giải pháp: Môi trường AWS Learner Lab không cho phép tạo Role mới, phải chọn chính xác 2 Role đã tạo sẵn là EMR_DefaultRole cho Service role và EMR_EC2_LabRole cho EC2 instance profile.
 Kế hoạch tuần sau (Như): Phát triển thêm kịch bản kiểm thử cho tác vụ Data Aggregation, nâng mức tải tập tin lớn (1GB, 3GB, 5GB), theo dõi giám sát qua hệ thống giám sát CloudWatch và ghi lại chính xác thời gian chạy vào file benchmark/results.csv để so sánh với cụm Self-Managed của Hiển.
+
 Phần có AI hỗ trợ (Như):
   - Công cụ / model: Claude (Claude 3.5 Sonnet).
   - Prompt chính: "Sửa lỗi 'ClassNotFoundException: org.apache.hadoop.fs.s3a.S3AFileSystem' khi chạy spark-submit trên cụm Hadoop 3.3 tự dựng kết nối S3."
