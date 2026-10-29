@@ -1,5 +1,5 @@
 **Tuần 1 (19/10–25/10/2026)**
-**Đỗ Minh Hiển (24139013) – … giờ:**
+**Đỗ Minh Hiển (24139013)**
 - Tìm hiểu kiến trúc Hadoop 3 (HDFS: NameNode/SecondaryNameNode/DataNode; YARN: ResourceManager/NodeManager/ApplicationMaster) và Spark-on-YARN (client và cluster mode, S3A).
 - Thiết kế cụm tự dựng: 1 master + 2 worker t3.medium, default VPC, subnet us-east-1a, Security Group (chỉ mở SSH từ IP nhóm, cổng nội bộ chỉ trong SG), EBS gp3 30 GB/node, LabInstanceProfile, tag theo quy ước. Lập ngân sách bộ nhớ YARN/Spark cho máy 4 GiB.
 - Vẽ sơ đồ kiến trúc self-managed (draw.io + PNG).
@@ -23,4 +23,4 @@
 - Công cụ / model: Claude (Anthropic), model claude-opus-5-5.
 - Prompt chính: "Đọc file phân công và repo, giúp tôi làm nhiệm vụ Tuần 1 nhánh tự dựng (thiết kế cụm, sơ đồ, script setup-base và dựng 3 EC2)".
 - Nội dung AI tạo: bản nháp ghi chú kiến trúc, script sinh sơ đồ, `ec2-cluster.sh`, `setup-base.sh`, `bootstrap-cluster.sh`.
-- Phần đã tự sửa/kiểm tra: …(điền: đã đọc lại từng cấu hình, chạy thử trên Learner Lab, chỉnh …)…
+- Phần đã tự sửa/kiểm tra: Đã đọc lại từng dòng cấu hình trong các script, kiểm thử thực tế trên môi trường AWS Learner Lab qua CloudShell, điều chỉnh lại các dải IP nội bộ phù hợp với subnet mặc định và tự kiểm chứng khả năng phân giải tên miền qua `/etc/hosts`.
