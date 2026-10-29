@@ -23,8 +23,7 @@ Tuần 2 (26/10–01/11/2026) Lê Huỳnh Như (24139035) – 10.0 giờ:
   - (2) Lỗi permission khi tạo cụm EMR do tự tạo IAM Role mới. Giải pháp: Môi trường AWS Learner Lab không cho phép tạo Role mới, phải chọn chính xác 2 Role đã tạo sẵn là EMR_DefaultRole cho Service role và EMR_EC2_LabRole cho EC2 instance profile.
 Kế hoạch tuần sau (Như): Phát triển thêm kịch bản kiểm thử cho tác vụ Data Aggregation, nâng mức tải tập tin lớn (1GB, 3GB, 5GB), theo dõi giám sát qua hệ thống giám sát CloudWatch và ghi lại chính xác thời gian chạy vào file benchmark/results.csv để so sánh với cụm Self-Managed của Hiển.
 Phần có AI hỗ trợ (Như):
-Phần có AI hỗ trợ (Như):
-- Công cụ / model: Claude (Claude 3.5 Sonnet).
-- Prompt chính: "Sửa lỗi 'ClassNotFoundException: org.apache.hadoop.fs.s3a.S3AFileSystem' khi chạy spark-submit trên cụm Hadoop 3.3 tự dựng kết nối S3."
-- Nội dung AI tạo: Hướng dẫn khai báo spark.jars.packages hoặc copy cặp file hadoop-aws.jar và aws-java-sdk-bundle.jar khớp phiên bản vào thư mục jars của Spark. Đoạn cấu hình spark-defaults.conf sử dụng fs.s3a.aws.credentials.provider=com.amazonaws.auth.InstanceProfileCredentialsProvider.
-- Phần đã tự sửa/hoàn thiện: Cấu hình tự động nhận quyền từ LabInstanceProfile mà không cần điền thủ công AWS Access/Secret Key.
+  - Công cụ / model: Claude (Claude 3.5 Sonnet).
+  - Prompt chính: "Sửa lỗi 'ClassNotFoundException: org.apache.hadoop.fs.s3a.S3AFileSystem' khi chạy spark-submit trên cụm Hadoop 3.3 tự dựng kết nối S3."
+  - Nội dung AI tạo: Hướng dẫn khai báo spark.jars.packages hoặc copy cặp file hadoop-aws.jar và aws-java-sdk-bundle.jar khớp phiên bản vào thư mục jars của Spark. Đoạn cấu hình spark-defaults.conf sử dụng fs.s3a.aws.credentials.provider=com.amazonaws.auth.InstanceProfileCredentialsProvider.
+  - Phần đã tự sửa/hoàn thiện: Cấu hình tự động nhận quyền từ LabInstanceProfile mà không cần điền thủ công AWS Access/Secret Key.
