@@ -20,6 +20,7 @@
   - (1) Tài khoản của Hiển không đọc được S3 của Như do môi trường AWS Learner Lab tách riêng 2 tài khoản khác nhau. Giải pháp: Như đã viết file S3 Bucket Policy và dán lên S3 Console để cấp quyền cho Role LabRole bên tài khoản Hiển.
   - (2) Báo lỗi ClassNotFoundException: org.apache.hadoop.fs.s3a.S3AFileSystem khi test chạy PySpark đọc đường dẫn s3a:// ở local do thiếu thư viện kết nối. Giải pháp: Thêm tham số --packages org.apache.hadoop:hadoop-aws:3.3.6,com.amazonaws:aws-java-sdk-bundle:1.12.367 vào câu lệnh spark-submit.
 Kế hoạch tuần sau (Như): Tạo cụm Amazon EMR (phiên bản emr-6.10.x gồm 1 máy Primary + 2 máy Core m4.large), viết script infra/emr-create.sh bằng AWS CLI để tự động tạo cụm và nộp bài chạy 2 file PySpark (wordcount.py, aggregation.py) từ S3, bật chế độ --auto-terminate để cụm tự tắt ngay khi chạy xong giúp tiết kiệm tiền Lab.
+
 Phần có AI hỗ trợ (Như):
 - Công cụ / model: Claude (Anthropic), model claude-3-5-sonnet.
 - Prompt chính: "Viết job PySpark thực hiện WordCount và Aggregation đọc/ghi dữ liệu trực tiếp từ S3; hỗ trợ phác thảo sơ đồ kiến trúc".
