@@ -1,4 +1,4 @@
-Tuần 1 (19/10–25/10/2026) Lê Huỳnh Như (24139035) – 8.0 giờ:
+**Tuần 1 (19/10–25/10/2026) Lê Huỳnh Như (24139035) – 8.0 giờ:**
 - Tìm hiểu kiến trúc Amazon EMR (gồm node chính Primary quản lý và các node phụ Core xử lý dữ liệu) và dịch vụ lưu trữ Amazon S3 (cách tạo thư mục, cách kết nối PySpark với S3 qua S3A).
 - Họp khởi động nhóm với Đỗ Minh Hiển (24139013): chốt dùng chung một vùng us-east-1 (dùng file vockey có sẵn), quy ước gắn nhãn bắt buộc trên mọi tài nguyên (Project=HadoopSpark-EC2-vs-EMR, Owner=24139035/24139013), thống nhất cây thư mục trên Git (infra/, scripts/, jobs/, benchmark/, docs/), và hẹn lịch không bao giờ bật đồng thời cụm EC2 và EMR để không bị vượt quá giới hạn tài khoản Student (tối đa 9 máy EC2 / 32 vCPUs).
 - Khởi tạo Repository GitHub https://github.com/lhuynhu06-beep/DTDM và tự tạo S3 Bucket thủ công bằng giao diện web AWS Console (Account ID 9337-3325-7957, us-east-1, ngày 21/10/2026):
