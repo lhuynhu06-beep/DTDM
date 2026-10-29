@@ -1,7 +1,7 @@
 **Tuần 2 (26/10–01/11/2026)**: phần của Đỗ Minh Hiển (24139013)
 *(Ghi chú trung thực: toàn bộ phần kỹ thuật được làm sớm vào ngày 25/10/2026 trên Learner Lab, Account 2111-2549-0692, us-east-1.)*
 
-**Đỗ Minh Hiển (24139013) – … giờ:**
+**Đỗ Minh Hiển (24139013)**
 - **Cấu hình HDFS/YARN:**
   - Các file `conf/hadoop/{core,hdfs,yarn,mapred}-site.xml` và `workers` được đưa lên node bằng `scripts/install-hadoop.sh`.
   - `fs.defaultFS=hdfs://hadoop-master:9000`, `dfs.replication=2`, thư mục dữ liệu nằm ở `/data/hadoop`.
