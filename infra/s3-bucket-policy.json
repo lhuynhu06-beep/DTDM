@@ -1,0 +1,21 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowLabRoleAccess",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::202976464461:role/LabRole"
+            },
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::hadoop-spark-lab-24139035",
+                "arn:aws:s3:::hadoop-spark-lab-24139035/*"
+            ]
+        }
+    ]
+}
