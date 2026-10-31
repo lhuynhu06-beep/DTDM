@@ -1,79 +1,77 @@
-# KỊCH BẢN QUAY VIDEO DEMO ĐỒ ÁN (THAO TÁC MÀN HÌNH & THUYẾT MINH KỸ THUẬT)
+# KỊCH BẢN QUAY MÀN HÌNH DEMO DỰ ÁN (KHÔNG GHI ÂM)
 **Đề tài:** Triển khai cụm Hadoop/Spark tự dựng trên EC2 và so sánh với Amazon EMR  
+**Thực hiện:** Lê Huỳnh Như (24139035) & Đỗ Minh Hiển (24139013)  
 **Repository:** https://github.com/lhuynhu06-beep/DTDM  
 
 ---
 
-## ⏱️ CẤU TRÚC THỜI LƯỢNG (~7-8 PHÚT)
+## ⏱️ TỔNG QUAN THỜI LƯỢNG CLIP (~5 - 6 PHÚT)
 
-| Phần | Nội dung chính | Thời lượng | Người thực hiện |
+| Phần | Thời lượng | Thao tác chính trên AWS Console / CLI | Chữ chú thích chèn lên clip (Caption) |
 | :--- | :--- | :--- | :--- |
-| **Phần 1** | Hạ tầng Amazon S3 & Phân quyền Cross-Account | 1:15 | Lê Huỳnh Như |
-| **Phần 2** | Dựng cụm EC2 Self-Managed bằng CloudFormation | 2:15 | Đỗ Minh Hiển |
-| **Phần 3** | Tự động hóa cụm Amazon EMR bằng AWS CLI | 2:15 | Lê Huỳnh Như |
-| **Phần 4** | Giám sát CloudWatch Dashboard & Kết quả Benchmark | 1:30 | Cả hai |
-| **Phần 5** | Dọn dẹp tài nguyên (Cleanup) & Chi phí | 0:45 | Lê Huỳnh Như |
+| **Phần 1** | 0:00 - 1:00 | S3 Bucket, Block Public Access, Policy Cross-Account, SSE-S3 | **Phần 1: Hạ tầng lưu trữ Amazon S3 & Bảo mật Cross-Account** |
+| **Phần 2** | 1:00 - 2:30 | Stack CloudFormation `CREATE_COMPLETE`, EC2 Instances, YARN UI, `spark-submit` | **Phần 2: Nhánh Self-Managed — CloudFormation IaC & EC2 Cluster** |
+| **Phần 3** | 2:30 - 4:00 | CloudShell chạy `emr-create.sh`, EMR Steps Console, S3 Results | **Phần 3: Nhánh Managed Service — Tự động hóa Amazon EMR qua CLI** |
+| **Phần 4** | 4:00 - 5:00 | CloudWatch Dashboard, Alarms, Biểu đồ Benchmark runtime | **Phần 4: Giám sát CloudWatch Metrics & Kết quả Benchmark** |
+| **Phần 5** | 5:00 - 5:30 | CLI `cleanup.sh`, EC2 Terminated, AWS Cost Report | **Phần 5: Dọn dẹp tài nguyên (Cleanup) & Báo cáo chi phí** |
 
 ---
 
-## 🎬 NỘI DUNG KỊCH BẢN CHI TIẾT
+## 🎬 NỘI DUNG THAO TÁC MÀN HÌNH CHI TIẾT
 
-### PHẦN 1: HẠ TẦNG AMAZON S3 & PHÂN QUYỀN (0:00 - 1:15)
-* **Thao tác màn hình:**
-  1. Mở trang chủ AWS Console, show rõ **Account ID** (9337-3325-7957) và Region **us-east-1** ở góc phải màn hình.
-  2. Mở dịch vụ **Amazon S3**, truy cập bucket `s3://hadoop-spark-lab-24139035`.
-  3. Mở tab **Permissions**: Show cấu hình **Block All Public Access** (Enabled) và dán file **S3 Bucket Policy** (`infra/s3-bucket-policy.json`) cấp quyền Cross-Account cho IAM Role `LabRole` của tài khoản Hiển (202976464461).
-  4. Mở tab **Properties**: Show mã hóa tự động **SSE-S3** và hệ thống **Tags** (`Project=HadoopSpark-EC2-vs-EMR`, `Owner=24139035`).
-  5. Mở danh sách thư mục: Show `/data/` (chứa các bộ dữ liệu 1GB, 3GB, 5GB, file *ChiPheo.txt*), `/jobs/` (`wordcount.py`, `aggregation.py`), `/logs/`, và `/results/`.
+### PHẦN 1: AMAZON S3 & PHÂN QUYỀN CROSS-ACCOUNT (0:00 - 1:00)
+* **Thao tác 1:** Mở trang chủ AWS Console, di chuột chỉ vào **Account ID** (`9337-3325-7957`) và Region `us-east-1`.
+* **Thao tác 2:** Mở S3 Bucket `s3://hadoop-spark-lab-24139035`.
+* **Thao tác 3:** Mở tab **Permissions**: Show dòng *Block All Public Access (On)* và dán file Policy `infra/s3-bucket-policy.json` cấp quyền cho Role `LabRole` của Hiển.
+* **Thao tác 4:** Mở tab **Properties**: Show mã hóa *SSE-S3* và Tags (`Project=HadoopSpark-EC2-vs-EMR`, `Owner=24139035`).
+* **Thao tác 5:** Mở các thư mục `/data/` (chứa các file 1GB, 3GB, 5GB), `/jobs/` (`wordcount.py`, `aggregation.py`), `/logs/`, và `/results/`.
 
-* **Lời thuyết minh:**
-  > "Hạ tầng lưu trữ dùng chung được khởi tạo tại S3 Bucket `s3://hadoop-spark-lab-24139035` thuộc Region `us-east-1`. Toàn bộ dữ liệu được khóa truy cập công khai và mã hóa tự động SSE-S3. Phân quyền Cross-Account được thiết lập qua S3 Bucket Policy cho phép IAM Role `LabRole` của tài khoản thành viên đọc/ghi dữ liệu trực tiếp. Bộ dữ liệu đầu vào gồm 3 mức dung lượng 1GB, 3GB, 5GB và các mã nguồn PySpark đã sẵn sàng tại các đường dẫn quy định."
-
----
-
-### PHẦN 2: TRIỂN KHAI CỤM EC2 SELF-MANAGED BẰNG CLOUDFORMATATION (1:15 - 3:30)
-* **Thao tác màn hình:**
-  1. Chuyển sang giao diện **AWS CloudFormation**, mở Stack `hadoop-cfn` báo trạng thái `CREATE_COMPLETE`. Show chi tiết thời gian khởi tạo hạ tầng là 4 phút 37 giây.
-  2. Chuyển sang giao diện **EC2 Instances**: Show 3 máy chủ đang chạy (`master`, `worker1`, `worker2` loại `t3.medium`: 2 vCPU, 4 GiB RAM, EBS gp3 30GB) có gắn `LabInstanceProfile` và Tag `Owner=24139013`.
-  3. Mở trình duyệt qua SSH Tunnel: Truy cập **NameNode Web UI (port 9870)** show 2 Live DataNodes và **YARN ResourceManager UI (port 8088)** show tổng số tài nguyên Memory/vCore quản lý.
-  4. Mở Terminal: Thực thi câu lệnh `spark-submit` nộp job WordCount chạy trên YARN đọc dữ liệu qua connector `s3a://hadoop-spark-lab-24139035/data/`.
-  5. Mở S3 Console: Show file kết quả được ghi thành công vào thư mục `s3://hadoop-spark-lab-24139035/results/self-managed/`.
-
-* **Lời thuyết minh:**
-  > "Nhánh Self-Managed được triển khai hoàn toàn tự động bằng Infrastructure as Code qua CloudFormation template `infra/self-managed.yaml`. Hệ thống tự động dựng VPC, Security Group và 3 EC2 node `t3.medium` trong 4 phút 37 giây. Cụm Hadoop 3.3 và Spark 3.5 được cấu hình chạy trên YARN, kết nối trực tiếp với S3 thông qua S3A Connector và tự động lấy quyền từ `LabInstanceProfile`. Kết quả thực thi job WordCount được ghi nhận thành công về thư mục chỉ định trên S3."
+📌 *Caption chèn trên clip:*  
+> **[S3 Storage Setup]** Bucket `s3://hadoop-spark-lab-24139035` (Region us-east-1)  
+> **[Security]** Block Public Access + Encrypted SSE-S3 + Cross-Account Policy cho LabRole.
 
 ---
 
-### PHẦN 3: TỰ ĐỘNG HÓA CỤM AMAZON EMR BẰNG AWS CLI (3:30 - 5:45)
-* **Thao tác màn hình:**
-  1. Mở **AWS CloudShell**, thực thi script `infra/emr-create.sh`. Show màn hình chạy lệnh `aws emr create-cluster` với các tham số release `emr-6.10.x`, 3 node `m4.large`, service role `EMR_DefaultRole`, instance profile `EMR_EC2_LabRole` và cờ `--auto-terminate`.
-  2. Mở giao diện **Amazon EMR Console**: Show cụm EMR được tạo chuyển từ `STARTING` sang `RUNNING`.
-  3. Mở tab **Steps**: Show danh sách 2 Spark Steps (`WordCount`, `Aggregation`) nộp từ S3 chuyển trạng thái sang `COMPLETED` (xử lý Step *ChiPheo.txt* thành công trong 50 giây).
-  4. Mở S3 Console: Show thư mục `s3://hadoop-spark-lab-24139035/results/emr/` có file đánh dấu `_SUCCESS` và file kết quả `part-00000`. Cụm EMR tự động giải phóng tài nguyên về trạng thái `TERMINATED`.
+### PHẦN 2: CỤM EC2 SELF-MANAGED BẰNG CLOUDFORMATION (1:00 - 2:30)
+* **Thao tác 1:** Mở AWS CloudFormation -> Show Stack `hadoop-cfn` ở trạng thái `CREATE_COMPLETE` (thời gian khởi tạo: 4m37s).
+* **Thao tác 2:** Mở EC2 Console -> Show 3 máy `t3.medium` (`master`, `worker1`, `worker2`) gắn `LabInstanceProfile` và Tag `Owner=24139013`.
+* **Thao tác 3:** Mở browser qua SSH Tunnel -> Truy cập **NameNode Web UI (port 9870)** show 2 Live DataNodes và **YARN UI (port 8088)**.
+* **Thao tác 4:** Mở Terminal -> Chạy lệnh `spark-submit` nộp job PySpark WordCount đọc trực tiếp đường dẫn `s3a://`.
+* **Thao tác 5:** Mở S3 Console -> Show thư mục kết quả `/results/self-managed/`.
 
-* **Lời thuyết minh:**
-  > "Nhánh Managed Service được tự động hóa bằng AWS CLI qua script `infra/emr-create.sh`. Lệnh khởi tạo cụm EMR release `emr-6.10.x` gồm 1 Primary node và 2 Core node `m4.large`, tự động gán các IAM Role có sẵn trong Learner Lab. Các Spark Steps được nộp trực tiếp từ S3 và tự động thực thi. Nhờ cờ `--auto-terminate`, cụm EMR tự động Terminate ngay sau khi hoàn thành toàn bộ bài chạy, giải phóng hoàn toàn tài nguyên để tối ưu chi phí."
-
----
-
-### PHẦN 4: CLOUDWATCH DASHBOARD & KẾT QUẢ BENCHMARK (5:45 - 7:15)
-* **Thao tác màn hình:**
-  1. Mở **AWS CloudWatch Console** -> **Dashboards**: Show màn hình dashboard giám sát tài nguyên thời gian thực với các biểu đồ `CPUUtilization`, `mem_used_percent` và `disk_used_percent` nhô đỉnh trong quá trình chạy bài test.
-  2. Mở **CloudWatch Alarms**: Show 1 Alarm được cấu hình cảnh báo khi CPU chạm ngưỡng 85%.
-  3. Mở file ảnh biểu đồ so sánh `docs/evidence/w4/emr-self-managed-runtime.png` và bảng tổng hợp `benchmark/summary-w4.md`:
-     - Show số liệu WordCount 1GB: Self-Managed tốn 210.0s (sau khi tối ưu `spark.sql.shuffle.partitions`) vs EMR tốn 142.5s.
-     - Show số liệu WordCount 5GB: Self-Managed tốn 982.0s vs EMR tốn 635.0s.
-
-* **Lời thuyết minh:**
-  > "Hệ thống được giám sát qua AWS CloudWatch Agent với tần số thu thập 60 giây và tích hợp Alarm cảnh báo khi CPU vượt 85%. Kết quả benchmark qua 24 lượt chạy đối soát cho thấy cụm EMR cho hiệu năng thực thi nhanh hơn khoảng 35-40% so với EC2 Self-Managed ở các tập dữ liệu lớn từ 3GB đến 5GB, nhờ lợi thế bộ nhớ RAM 8GB/node và khả năng tối ưu sẵn của EMR Runtime."
+📌 *Caption chèn trên clip:*  
+> **[Self-Managed IaC]** CloudFormation dựng 3 node EC2 t3.medium trong 4 phút 37 giây.  
+> **[Spark-on-YARN]** Chạy job PySpark đọc S3 qua S3A Connector & LabInstanceProfile.
 
 ---
 
-### PHẦN 5: DỌN DẸP TÀI NGUYÊN & BÁO CÁO CHI PHÍ (7:15 - 8:00)
-* **Thao tác màn hình:**
-  1. Mở CloudShell: Chạy script `infra/cleanup-nhu.sh` và `infra/cleanup.sh`. Show dòng lệnh xóa stack CloudFormation `aws cloudformation delete-stack` và kiểm tra dừng toàn bộ instance EC2.
-  2. Mở **EC2 Console**: Show toàn bộ các máy EC2 đã ở trạng thái `Terminated` / `Stopped`.
-  3. Mở trang **AWS Learner Lab Credit Report** (`docs/evidence/w4/aws-cost-report.png`): Show tổng chi phí đã sử dụng nằm trong giới hạn ngân sách được cấp.
+### PHẦN 3: TỰ ĐỘNG HÓA CỤM AMAZON EMR BẰNG AWS CLI (2:30 - 4:00)
+* **Thao tác 1:** Mở AWS CloudShell -> Chạy script `infra/emr-create.sh` với lệnh `aws emr create-cluster` kèm cờ `--auto-terminate`.
+* **Thao tác 2:** Mở EMR Console -> Show cụm chuyển trạng thái `STARTING` -> `RUNNING`.
+* **Thao tác 3:** Mở tab **Steps** -> Show các Step (`WordCount`, `Aggregation`) chuyển sang `COMPLETED` (xử lý Step *ChiPheo.txt* trong 50 giây).
+* **Thao tác 4:** Mở S3 Console -> Show kết quả ghi vào `/results/emr/` với file `_SUCCESS` và `part-00000`. Cụm EMR tự động chuyển trạng thái sang `TERMINATED`.
 
-* **Lời thuyết minh:**
-  > "Sau khi thu thập đủ dữ liệu benchmark, toàn bộ tài nguyên được dọn dẹp bằng script CLI. Stack CloudFormation bị xóa, các EC2 instance bị Terminate và EMR cluster đã được giải phóng. Thư mục kết quả trên S3 được bảo lưu phục vụ nộp bài. Báo cáo chi phí ghi nhận tổng ngân sách tiêu thụ nằm trong hạn mức an toàn của phiên AWS Learner Lab."
+📌 *Caption chèn trên clip:*  
+> **[Managed EMR]** Tự động khởi tạo cụm EMR emr-6.10.x (3 node m4.large) qua AWS CLI.  
+> **[Auto-Terminate]** Submit Step PySpark từ S3 và tự động giải phóng cụm ngay khi hoàn thành.
+
+---
+
+### PHẦN 4: CLOUDWATCH MONITORING & KẾT QUẢ BENCHMARK (4:00 - 5:00)
+* **Thao tác 1:** Mở AWS CloudWatch -> Show **Dashboard** hiển thị biểu đồ CPUUtilization, RAM, Disk spike khi đang chạy job.
+* **Thao tác 2:** Show **CloudWatch Alarm** cảnh báo khi CPU > 85%.
+* **Thao tác 3:** Mở file ảnh biểu đồ `docs/evidence/w4/emr-self-managed-runtime.png` và file tổng hợp `benchmark/summary-w4.md`.
+
+📌 *Caption chèn trên clip:*  
+> **[Monitoring]** CloudWatch Agent giám sát CPU, RAM, Disk thời gian thực & Cảnh báo Alarm CPU > 85%.  
+> **[Benchmark]** Amazon EMR cho hiệu năng thực thi nhanh hơn ~35-40% so với EC2 Self-Managed.
+
+---
+
+### PHẦN 5: DỌN DẸP TÀI NGUYÊN & BÁO CÁO CHI PHÍ (5:00 - 5:30)
+* **Thao tác 1:** Mở CloudShell -> Chạy script `infra/cleanup.sh` và `infra/cleanup-nhu.sh`.
+* **Thao tác 2:** Mở EC2 Console -> Show toàn bộ máy EC2 ở trạng thái `Terminated` / `Stopped`.
+* **Thao tác 3:** Mở trang **AWS Learner Lab Credit Report** (`docs/evidence/w4/aws-cost-report.png`) chứng minh tổng chi phí trong hạn mức.
+
+📌 *Caption chèn trên clip:*  
+> **[Cleanup & Cost]** Dọn dẹp tài nguyên qua AWS CLI script. Ngân sách Learner Lab được bảo đảm an toàn.
