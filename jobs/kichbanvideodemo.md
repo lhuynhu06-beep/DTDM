@@ -63,7 +63,7 @@
   5. Quay lại EMR Console -> Show cụm EMR tự động chuyển sang trạng thái `TERMINATED` để tiết kiệm chi phí.
 
 📌 *Caption chèn video:*  
-> **Phần 3 [Lê Huỳnh Như]:** Tự động hóa tạo cụm EMR (emr-6.10.x, 3 node m4.large) bằng AWS CLI.  
+> **Phần 3 [Lê Huỳnh Như]:** Tự động hóa tạo cụm EMR (emr-5.36.0, 3 node m4.large) bằng AWS CLI.  
 > Nộp Spark Steps tự động từ S3 và bật Auto-Terminate giải phóng cụm ngay khi hoàn thành.
 
 ---
